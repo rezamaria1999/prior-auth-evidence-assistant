@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coverage Evidence Assistant — UM Review</title>
+<style>
+  :root {
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#16191d; --ink-2:#4a5058; --ink-3:#767d87;
+    --line:#e2e5ea; --line-2:#cfd4db;
+    --accent:#1a5f7a; --accent-soft:#e8f1f5;
+    --flag:#8a5a00; --flag-soft:#fdf4e3; --flag-line:#e8c98a;
+    --conflict:#8c2f28; --conflict-soft:#fbeeed; --conflict-line:#e5b3ae;
+    --ok:#1f6b45; --ok-soft:#eaf4ee;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- chrome ---------- */
+  header {
+    background:var(--panel); border-bottom:1px solid var(--line);
+    padding:0 20px; display:flex; align-items:center; gap:28px;
+    position:sticky; top:0; z-index:10;
+  }
+  .brand { font-weight:600; padding:14px 0; letter-spacing:-0.01em; }
+  .brand span { color:var(--ink-3); font-weight:400; }
+  nav { display:flex; gap:2px; margin-left:auto; }
+  nav button {
+    background:none; border:none; font:inherit; color:var(--ink-2);
+    padding:16px 14px; cursor:pointer; border-bottom:2px solid transparent;
+  }
+  nav button:hover { color:var(--ink); }
+  nav button.on { color:var(--accent); border-bottom-color:var(--accent); font-weight:500; }
+
+  main { max-width:1180px; margin:0 auto; padding:24px 20px 64px; }
+  .view { display:none; }
+  .view.on { display:block; }
+
+  h1 { font-size:19px; margin:0 0 4px; letter-spacing:-0.01em; }
+  .sub { color:var(--ink-3); margin:0 0 20px; }
+
+  /* ---------- queue ---------- */
+  .queue { background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  table { width:100%; border-collapse:collapse; }
+  th {
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em;
+    color:var(--ink-3); font-weight:600; padding:10px 14px;
+    border-bottom:1px solid var(--line); background:#fafbfc;
+  }
+  td { padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:last-child td { border-bottom:none; }
+  tbody tr { cursor:pointer; }
+  tbody tr:hover { background:#fafbfc; }
+  tbody tr.flagged { background:var(--flag-soft); }
+  tbody tr.flagged:hover { background:#fbefd8; }
+
+  .mid { font-family:var(--mono); font-size:12px; color:var(--ink-2); }
+  .who { font-weight:500; }
+  .meta { color:var(--ink-3); font-size:12.5px; margin-top:2px; }
+
+  .tag {
+    display:inline-block; font-size:11px; font-weight:600; padding:3px 8px;
+    border-radius:11px; border:1px solid;
+  }
+  .tag.flag { color:var(--flag); background:var(--flag-soft); border-color:var(--flag-line); }
+  .tag.conflict { color:var(--conflict); background:var(--conflict-soft); border-color:var(--conflict-line); }
+  .tag.quiet { color:var(--ink-3); background:#f2f4f6; border-color:var(--line-2); }
+
+  .due { font-variant-numeric:tabular-nums; }
+  .due.soon { color:var(--conflict); font-weight:600; }
+
+  .filters { display:flex; align-items:center; gap:20px; margin-bottom:14px; flex-wrap:wrap; }
+  .filters label { font-size:12.5px; color:var(--ink-3); display:flex; align-items:center; gap:6px; }
+  .filters select {
+    font:inherit; font-size:13px; padding:5px 8px; border:1px solid var(--line-2); border-radius:6px;
+    background:var(--panel); color:var(--ink); cursor:pointer;
+  }
+  .filter-count { font-size:12.5px; color:var(--ink-3); margin-left:auto; }
+
+  /* ---------- summary strip ---------- */
+  .strip { display:flex; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .stat {
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:12px 16px; min-width:132px; flex:1;
+  }
+  .stat .n { font-size:22px; font-weight:600; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
+  .stat .l { font-size:12px; color:var(--ink-3); margin-top:1px; }
+
+  /* ---------- notices ---------- */
+  .stub {
+    background:var(--panel); border:1px dashed var(--line-2); border-radius:8px;
+    padding:36px; text-align:center; color:var(--ink-3);
+  }
+  .stub b { color:var(--ink-2); display:block; margin-bottom:6px; font-weight:600; }
+  code { font-family:var(--mono); font-size:12.5px; background:#eef0f3; padding:1px 5px; border-radius:3px; }
+
+  /* ---------- case screen ---------- */
+  .back-link {
+    background:none; border:none; color:var(--accent); font:inherit; cursor:pointer;
+    padding:0 0 14px; display:block;
+  }
+  .case-banner {
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:14px 18px; margin-bottom:16px;
+  }
+  .banner-row { display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:6px; }
+  .banner-row:last-of-type { margin-bottom:0; }
+  .nurse-note {
+    margin-top:10px; padding-top:10px; border-top:1px solid var(--line);
+    font-size:13px; color:var(--ink-2);
+  }
+  .nurse-note .l { color:var(--ink-3); font-size:12px; margin-bottom:4px; }
+  .nurse-note .reason { margin-top:6px; }
+
+  /* Evidence pane (left) and document pane (right) sit side by side so a
+     citation click can highlight the source passage while the quote that
+     cites it stays visible -- neither pane ever covers the other. */
+  .case-body { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
+  .evidence-pane { display:flex; flex-direction:column; gap:12px; }
+
+  .claims-block {
+    background:var(--ok-soft); border:1px solid #bfe0cd; border-radius:8px; padding:12px 14px;
+  }
+  .claims-title, .findings-title {
+    font-size:11px; text-transform:uppercase; letter-spacing:0.05em; font-weight:600;
+    color:var(--ink-3); margin-bottom:6px;
+  }
+  .claims-row { font-size:13px; margin-bottom:8px; }
+  .claims-row:last-child { margin-bottom:0; }
+  .claims-row .cond { font-weight:600; color:var(--ok); }
+  .claims-row .basis { color:var(--ink-2); margin-top:2px; }
+
+  .finding-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+  .citation {
+    font-family:var(--mono); font-size:11.5px; background:var(--accent-soft); color:var(--accent);
+    border:1px solid #c5dde6; border-radius:4px; padding:2px 8px; cursor:pointer; margin-right:8px;
+  }
+  .citation:hover { background:#d9ecf3; }
+  .verified { font-size:11.5px; font-weight:600; }
+  .verified.ok { color:var(--ok); }
+  .verified.warn { color:var(--conflict); }
+  .finding-card blockquote {
+    margin:8px 0; padding:8px 10px; border-left:3px solid var(--line-2);
+    font-style:italic; color:var(--ink); font-size:13px;
+  }
+  .finding-card .relevance { font-size:13px; color:var(--ink-2); }
+  .finding-card .concern {
+    margin-top:8px; padding:8px 10px; background:var(--flag-soft); border:1px solid var(--flag-line);
+    border-radius:6px; font-size:12.5px; color:var(--flag);
+  }
+  .disagree { margin-top:10px; }
+  .disagree-btn {
+    background:none; border:1px solid var(--line-2); border-radius:6px; padding:4px 10px;
+    font:inherit; font-size:12.5px; color:var(--ink-2); cursor:pointer;
+  }
+  .disagree-btn:hover { border-color:var(--conflict); color:var(--conflict); }
+  .disagree-form { display:flex; gap:6px; }
+  .disagree-form input {
+    flex:1; font:inherit; font-size:12.5px; padding:5px 8px; border:1px solid var(--line-2); border-radius:6px;
+  }
+  .disagree-form button {
+    font:inherit; font-size:12.5px; padding:5px 10px; border:1px solid var(--accent); background:var(--accent);
+    color:#fff; border-radius:6px; cursor:pointer;
+  }
+  .disagreed { font-size:12.5px; color:var(--ink-3); font-style:italic; }
+  .no-findings { font-size:13px; color:var(--ink-3); font-style:italic; }
+
+  /* .no-finding reuses .finding-card's box (border/padding/background)
+     on purpose -- silence should carry the same visual weight as a real
+     finding, not read as a lesser or broken state. */
+  .no-finding-label {
+    font-size:11px; text-transform:uppercase; letter-spacing:0.05em; font-weight:600;
+    color:var(--ink-3); margin-bottom:6px;
+  }
+  .no-finding-text { font-size:14px; color:var(--ink); margin:0; }
+
+  /* Itemized claim lines inside the claims block -- only rendered when a
+     diagnosis pointer is the fact doing the work. */
+  .claims-ledger { margin-top:10px; padding-top:10px; border-top:1px solid #bfe0cd; }
+  .ledger-label {
+    font-size:11px; text-transform:uppercase; letter-spacing:0.05em; font-weight:600;
+    color:var(--ink-3); margin-bottom:6px;
+  }
+  .claim-line { display:flex; align-items:center; gap:8px; font-size:12.5px; padding:3px 0; flex-wrap:wrap; }
+  .claim-line .dos { font-family:var(--mono); color:var(--ink-3); min-width:78px; }
+  .claim-line .desc { color:var(--ink-2); }
+  .claim-line .dx-pointer {
+    margin-left:auto; font-size:11px; font-weight:600; color:var(--conflict);
+    background:var(--conflict-soft); border:1px solid var(--conflict-line);
+    border-radius:11px; padding:2px 8px;
+  }
+
+  /* Conflict banner: claims layer and narrative layer disagree. Deliberately
+     states the disagreement only -- no verdict. */
+  .conflict-banner {
+    background:var(--conflict-soft); border:1px solid var(--conflict-line); color:var(--conflict);
+    border-radius:8px; padding:10px 14px; font-size:13px;
+  }
+
+  /* Document pane: tabs across the top, then either flat text or a
+     collapsible per-page list for faxed multi-page packets. It is its own
+     scroll container (overflow-y:auto) with a height pinned to the viewport
+     (not a fixed px value, so it fits any screen), and sticky so it stays in
+     place while the evidence pane on the left scrolls independently. This
+     matters for citation clicks: scrolling to a highlighted passage must
+     happen INSIDE this box, never by scrolling the whole page, or the quote
+     that triggered the jump (in the evidence pane) can end up off-screen. */
+  .document-pane {
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:12px 14px; overflow-y:auto; position:sticky;
+    top:76px; max-height:calc(100vh - 96px);
+  }
+  .doc-tabs { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px; }
+  .doc-tab {
+    font:inherit; font-size:12px; background:#f2f4f6; border:1px solid var(--line-2);
+    border-radius:6px; padding:4px 9px; cursor:pointer; color:var(--ink-2);
+  }
+  .doc-tab.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .doc-meta { font-size:12px; color:var(--ink-3); margin-bottom:10px; }
+  .doc-flat, .page-text { white-space:pre-wrap; font-size:13px; line-height:1.6; color:var(--ink-2); }
+  .doc-page { border-top:1px solid var(--line); padding:6px 0; }
+  .doc-page:first-child { border-top:none; }
+  .page-toggle {
+    background:none; border:none; font:inherit; font-size:12.5px; font-weight:500;
+    color:var(--ink-2); cursor:pointer; padding:4px 0; text-align:left; width:100%;
+  }
+  .doc-page.open .page-toggle { color:var(--accent); }
+  .page-text { margin-top:6px; }
+  mark.hl { background:#fdf1a8; padding:0 2px; border-radius:2px; }
+
+  @media (max-width: 860px) {
+    .case-body { grid-template-columns:1fr; }
+    .document-pane { position:static; max-height:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Coverage Evidence Assistant <span>· Utilization Management</span></div>
+  <nav>
+    <button data-view="queue" class="on">Review Queue</button>
+    <button data-view="case">Case</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ============ QUEUE ============ -->
+  <section id="queue" class="view on">
+    <h1>Pending clinical review</h1>
+    <p class="sub">Cases routed for clinician review before an adverse determination is issued. Advanced imaging · LCD L34220.</p>
+    <div class="strip" id="stats"></div>
+    <div class="filters">
+      <label>Due
+        <select id="filterDue">
+          <option value="all">All</option>
+          <option value="today">Due today</option>
+          <option value="2days">Due within 2 days</option>
+        </select>
+      </label>
+      <label>Evidence assistant
+        <select id="filterEvidence">
+          <option value="all">All</option>
+          <option value="found">Evidence found</option>
+          <option value="conflict">Sources conflict</option>
+          <option value="none">No finding</option>
+        </select>
+      </label>
+      <span class="filter-count" id="filterCount"></span>
+    </div>
+    <div class="queue"><table>
+      <thead><tr>
+        <th style="width:130px">Case</th>
+        <th>Member</th>
+        <th style="width:190px">Request</th>
+        <th style="width:150px">Evidence assistant</th>
+        <th style="width:96px">Decision due</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </section>
+
+  <!-- ============ CASE ============ -->
+  <section id="case" class="view">
+    <div id="caseContent"></div>
+  </section>
+</main>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function daysUntil(dateStr, from = '2026-08-31') {
+  return Math.round((new Date(dateStr) - new Date(from)) / 86400000);
+}
+
+/* CMS-0057-F: 7 calendar days standard, 72 hours expedited, from submission. */
+function dueDate(submitted, urgency) {
+  const d = new Date(submitted);
+  d.setDate(d.getDate() + (urgency === 'expedited' ? 3 : 7));
+  return d.toISOString().slice(0, 10);
+}
+
+/* The queue is cases heading toward denial — hero cases first so the demo
+   opens on Margaret, then the supporting population. */
+function buildQueue() {
+  const hero = DATA.heroCases.map(c => ({
+    id: c.id,
+    member: c.member,
+    request: c.request,
+    review: c.review,
+    due: c.review.decisionDueDate,
+    flags: DATA.modelOutputs[c.id]?.findings?.length > 0,
+    conflict: !!DATA.modelOutputs[c.id]?.conflictWithClaimsLayer,
+    isHero: true,
+  }));
+
+  const rest = DATA.queueCases
+    .filter(c => c.review.status === 'pending_medical_director')
+    .map(c => ({
+      id: c.id,
+      member: c.member,
+      request: c.request,
+      review: c.review,
+      due: dueDate(c.request.submittedDate, c.request.urgency),
+      flags: c.modelBehavior.flags,
+      conflict: false,
+      isHero: false,
+    }));
+
+  return hero.concat(rest);
+}
+
+function assistantCell(c) {
+  if (c.conflict) return '<span class="tag conflict">Sources conflict</span>';
+  if (c.flags)    return '<span class="tag flag">Evidence found</span>';
+  return '<span class="tag quiet">No finding</span>';
+}
+
+/* Filter state for the queue table. Combined with AND: a case must pass both
+   the due-date filter and the evidence filter to show. No bulk actions live
+   here -- filtering only narrows which rows are visible, every row still
+   opens its own case individually via the existing row click handler. */
+const filters = { due: 'all', evidence: 'all' };
+
+function matchesFilters(c) {
+  const d = daysUntil(c.due);
+  if (filters.due === 'today' && !(d <= 0)) return false;
+  if (filters.due === '2days' && !(d <= 2)) return false;
+  if (filters.evidence === 'found' && !(c.flags && !c.conflict)) return false;
+  if (filters.evidence === 'conflict' && !c.conflict) return false;
+  if (filters.evidence === 'none' && !(!c.flags && !c.conflict)) return false;
+  return true;
+}
+
+/* The full, unfiltered queue from the last render() -- filter dropdowns
+   re-render against this rather than rebuilding from DATA each time, since
+   filtering never changes the underlying queue, only which rows are shown. */
+let lastQueue = [];
+
+function renderRows(q) {
+  const visible = q.filter(matchesFilters);
+
+  $('#rows').innerHTML = visible.map(c => {
+    const d = daysUntil(c.due);
+    return `<tr class="${c.flags || c.conflict ? 'flagged' : ''}" data-id="${c.id}">
+      <td class="mid">${esc(c.id)}</td>
+      <td>
+        <div class="who">${esc(c.member.name)}</div>
+        <div class="meta">${c.member.age} · ${esc(c.member.plan)}${
+          c.member.language !== 'English' ? ' · ' + esc(c.member.language) : ''}</div>
+      </td>
+      <td>
+        <div>${esc(c.request.description)}</div>
+        <div class="meta">CPT ${esc(c.request.cpt)}</div>
+      </td>
+      <td>${assistantCell(c)}</td>
+      <td class="due ${d <= 2 ? 'soon' : ''}">${d <= 0 ? 'today' : d + 'd'}</td>
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('#rows tr').forEach(tr => {
+    tr.onclick = () => { window.SELECTED = tr.dataset.id; renderCase(tr.dataset.id); show('case'); };
+  });
+
+  const active = filters.due !== 'all' || filters.evidence !== 'all';
+  $('#filterCount').textContent = active ? `Showing ${visible.length} of ${q.length} cases` : '';
+}
+
+function render() {
+  const q = buildQueue();
+  lastQueue = q;
+  const flagged = q.filter(c => c.flags || c.conflict).length;
+
+  $('#stats').innerHTML = [
+    [q.length, 'Awaiting review'],
+    [flagged, 'Assistant surfaced evidence'],
+    [q.length - flagged, 'No finding'],
+    [Math.round(flagged / q.length * 100) + '%', 'Flag rate'],
+  ].map(([n, l]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+
+  renderRows(q);
+}
+
+$('#filterDue').onchange = e => { filters.due = e.target.value; renderRows(lastQueue); };
+$('#filterEvidence').onchange = e => { filters.evidence = e.target.value; renderRows(lastQueue); };
+
+/* ---------- case screen ---------- */
+/* Per-case, client-side-only UI state: which document tab is open, which
+   page (for multi-page faxed packets) is expanded, and which quote (if any)
+   should be highlighted right now. Keyed by case id so switching between
+   cases doesn't bleed state into each other. The whole case screen is
+   rebuilt from this state on every interaction, the same rebuild-from-state
+   approach render() uses for the queue -- simpler to reason about than
+   patching individual DOM nodes, and cheap enough at this data size. */
+const docState = {};
+
+/* Reviewer "I disagree" notes on individual findings, keyed by
+   `${caseId}::${findingIndex}`. In-memory only for this prototype -- a real
+   build would send this to an audit trail. */
+const disagreements = {};
+
+function findCase(id) {
+  return DATA.heroCases.find(c => c.id === id);
+}
+
+/* The trust check that backs the "verified" badge: does this quote actually
+   appear, verbatim, in the document the model says it came from?
+   model-outputs.json (_note) claims every quote was checked this way offline
+   with scripts/verify_citations.py before the file was written; this
+   re-derives the same check live in the browser, against the same document
+   the reviewer is looking at, so the badge can't drift from a stale claim. */
+function quoteVerified(caseObj, documentId, page, quote) {
+  const doc = caseObj.documents.find(d => d.id === documentId);
+  if (!doc) return false;
+  const text = doc.sections
+    ? (doc.sections.find(s => s.page === page) || {}).text || ''
+    : (doc.content || '');
+  return text.includes(quote);
+}
+
+/* Escapes `text` for HTML, then wraps the (equally escaped) `quote`
+   substring in <mark>. Escaping both sides the same way before searching
+   keeps the match aligned even though esc() changes string length. */
+function withHighlight(text, quote) {
+  const escText = esc(text);
+  if (!quote) return escText;
+  const escQuote = esc(quote);
+  const idx = escText.indexOf(escQuote);
+  if (idx === -1) return escText;
+  return escText.slice(0, idx) + '<mark class="hl">' + escQuote + '</mark>' + escText.slice(idx + escQuote.length);
+}
+
+/* Centers the highlighted quote inside the document pane's OWN scroll
+   position (container.scrollTop), rather than calling the highlighted
+   element's scrollIntoView(). scrollIntoView is spec'd to scroll whatever
+   ancestors it needs to, including the page itself -- which is exactly what
+   we don't want, since the finding card that triggered the jump lives in
+   the evidence pane and must stay put. Setting scrollTop directly touches
+   only the document pane. */
+function scrollHighlightIntoView() {
+  const container = document.querySelector('.document-pane');
+  const mark = container && container.querySelector('mark.hl');
+  if (!container || !mark) return;
+  const target = mark.offsetTop - (container.clientHeight / 2) + (mark.clientHeight / 2);
+  container.scrollTop = Math.max(0, target);
+}
+
+function bannerHTML(c) {
+  const d = daysUntil(c.review.decisionDueDate);
+  return `
+    <div class="case-banner">
+      <div class="banner-row">
+        <div>
+          <div class="who">${esc(c.member.name)}</div>
+          <div class="meta">${c.member.age} ${esc(c.member.sex)} &middot; ${esc(c.member.plan)}${
+            c.member.language !== 'English' ? ' &middot; ' + esc(c.member.language) : ''}</div>
+        </div>
+        <div class="due ${d <= 2 ? 'soon' : ''}">${d <= 0 ? 'Due today' : 'Due in ' + d + 'd'} &middot; ${esc(c.review.decisionDueDate)}</div>
+      </div>
+      <div class="banner-row"><div><b>${esc(c.request.description)}</b> &middot; CPT ${esc(c.request.cpt)}</div></div>
+      <div class="nurse-note">
+        <div class="l">Nurse review &mdash; ${esc(c.review.nurseReviewer)} &middot; proposed action: <b>${esc(c.review.proposedAction)}</b></div>
+        <div>${esc(c.review.nurseNote)}</div>
+        <div class="reason"><b>Proposed reason:</b> ${esc(c.review.proposedReason)}</div>
+      </div>
+    </div>`;
+}
+
+/* Claims layer: facts already settled by the plan's own transaction record,
+   before any document gets read. Rendered separately from, and above, the
+   narrative findings because a paid claim is evidentially stronger than a
+   model's reading of free text (see _designPrinciples in cases-hero.json).
+
+   The summary sentence in `basis` isn't enough on its own -- when a claim's
+   diagnosis pointer is the fact that actually settles the question (a real,
+   paid therapy claim billed against an unrelated diagnosis), the reviewer
+   needs to see that line item, not just be told a conclusion. So beneath the
+   summary, itemize the underlying claims whenever any of them carries a
+   diagnosis pointer worth flagging. For cases without that fact (e.g.
+   Ellison's), no record has a diagnosisPointer field and this renders
+   nothing extra -- the summary line stays sufficient on its own. */
+function claimsBlockHTML(out, caseObj) {
+  const items = out.alreadyResolved || [];
+  if (!items.length) return '';
+
+  const claims = (caseObj.claimsHistory && caseObj.claimsHistory.records) || [];
+  const flagged = claims.filter(c => c.diagnosisPointer);
+  const derived = (caseObj.claimsHistory && caseObj.claimsHistory.derived) || {};
+
+  return `
+    <div class="claims-block">
+      <div class="claims-title">Claims layer &middot; deterministic</div>
+      ${items.map(r => `
+        <div class="claims-row">
+          <div class="cond">${esc(r.condition)}</div>
+          <div class="basis">${esc(r.basis)}</div>
+        </div>`).join('')}
+      ${flagged.length ? `
+        <div class="claims-ledger">
+          <div class="ledger-label">Claim lines on file (${claims.length}${
+            derived.visitCount ? ' of ' + derived.visitCount : ''} shown)</div>
+          ${claims.map(c => `
+            <div class="claim-line">
+              <span class="dos">${esc(c.dos)}</span>
+              <span class="desc">${esc(c.description)}</span>
+              ${c.diagnosisPointer ? `<span class="dx-pointer">${esc(c.diagnosisPointer)}</span>` : ''}
+            </div>`).join('')}
+        </div>` : ''}
+    </div>`;
+}
+
+/* Rendered only when the narrative layer's finding contradicts the claims
+   layer (out.conflictWithClaimsLayer). States the disagreement plainly and
+   stops there -- it must NOT say which side is right, even in cases (like
+   this one) where the claims layer happens to be correct. Resolving that
+   here would defeat the reason the conflict is surfaced at all: the
+   reviewer adjudicates, not the system. */
+function conflictBannerHTML(out) {
+  if (!out.conflictWithClaimsLayer) return '';
+  return `
+    <div class="conflict-banner">
+      <b>&#9888; Sources disagree.</b> The claims layer and the evidence assistant's
+      reading of the record do not agree on whether conservative management for this
+      complaint occurred. Both are shown in full below. The system has not resolved
+      this for you &mdash; weigh both before deciding.
+    </div>`;
+}
+
+/* Silence is a real, deliberate outcome -- not a loading failure or a blank
+   panel -- so it gets the exact same card treatment as a real finding
+   (`finding-card` class: same border, padding, background). The wording is
+   pulled verbatim from data (out.noFindingStatement) rather than retyped
+   here, so there is exactly one place this exact sentence lives and no risk
+   of it drifting from the source of truth through paraphrase. */
+function noFindingCardHTML(out) {
+  return `
+    <div class="finding-card no-finding">
+      <div class="no-finding-label">No finding</div>
+      <p class="no-finding-text">${esc(out.noFindingStatement)}</p>
+    </div>`;
+}
+
+function findingCardHTML(caseObj, caseId, f, i) {
+  const verified = quoteVerified(caseObj, f.documentId, f.page, f.quote);
+  const disagreedReason = disagreements[`${caseId}::${i}`];
+
+  return `
+    <div class="finding-card">
+      <button class="citation" data-idx="${i}">${esc(f.documentId)}, p.${f.page}</button>
+      <span class="verified ${verified ? 'ok' : 'warn'}">${
+        verified ? '✓ verified against source' : '⚠ quote not found verbatim'}</span>
+      <blockquote>&ldquo;${esc(f.quote)}&rdquo;</blockquote>
+      <div class="relevance">${esc(f.relevance)}</div>
+      ${f.concerns ? `<div class="concern"><b>Concern:</b> ${esc(f.concerns)}</div>` : ''}
+      <div class="disagree">
+        ${disagreedReason
+          ? `<div class="disagreed">You disagreed: &ldquo;${esc(disagreedReason)}&rdquo;</div>`
+          : `<button class="disagree-btn" data-idx="${i}">I disagree</button>
+             <form class="disagree-form" data-idx="${i}" hidden>
+               <input type="text" maxlength="140" placeholder="Short reason" required>
+               <button type="submit">Submit</button>
+             </form>`}
+      </div>
+    </div>`;
+}
+
+function evidencePaneHTML(caseObj, out, caseId) {
+  const findings = out.findings || [];
+  return `
+    <div class="evidence-pane">
+      ${claimsBlockHTML(out, caseObj)}
+      ${conflictBannerHTML(out)}
+      <div class="findings-title">Evidence assistant &middot; narrative layer</div>
+      ${findings.length
+        ? findings.map((f, i) => findingCardHTML(caseObj, caseId, f, i)).join('')
+        : (out.noFindingStatement
+            ? noFindingCardHTML(out)
+            : '<div class="no-findings">No findings for this case yet in this build.</div>')}
+    </div>`;
+}
+
+/* Renders whichever document tab is active. Two source shapes exist in the
+   data: a flat `content` string (office notes, radiology reports) and a
+   paginated `sections[]` packet (faxed outside-records bundles). Sectioned
+   docs render as a collapsed page list -- only the open page's text is ever
+   in the DOM -- so a 14-page unitemized fax reads the way it would to a
+   reviewer: buried, until a citation (or the reviewer) opens the right page. */
+function documentPaneHTML(caseObj, caseId) {
+  const state = docState[caseId];
+  const activeDoc = caseObj.documents.find(d => d.id === state.activeDocId);
+
+  const tabs = caseObj.documents.map(d => `
+    <button class="doc-tab ${d.id === state.activeDocId ? 'on' : ''}" data-doc="${d.id}">${esc(d.type)}</button>
+  `).join('');
+
+  let body;
+  if (activeDoc.sections) {
+    body = activeDoc.sections.map(s => {
+      const open = state.openPage === s.page;
+      return `
+        <div class="doc-page ${open ? 'open' : ''}">
+          <button class="page-toggle" data-page="${s.page}">p.${s.page} &mdash; ${esc(s.heading)}</button>
+          ${open ? `<div class="page-text">${withHighlight(s.text, state.hlQuote)}</div>` : ''}
+        </div>`;
+    }).join('');
+  } else {
+    body = `<div class="doc-flat">${withHighlight(activeDoc.content, state.hlQuote)}</div>`;
+  }
+
+  return `
+    <div class="document-pane">
+      <div class="doc-tabs">${tabs}</div>
+      <div class="doc-meta">${esc(activeDoc.source)} &middot; ${esc(activeDoc.date)}${
+        activeDoc.pages ? ' &middot; ' + activeDoc.pages + 'pp' : ''}</div>
+      <div class="doc-body">${body}</div>
+    </div>`;
+}
+
+function renderCase(id) {
+  const c = findCase(id);
+  const container = $('#caseContent');
+
+  if (!c) {
+    /* Non-hero queue cases don't have full documents/model output yet
+       (build.py only gives hero cases full documents) -- fall back rather
+       than render a broken evidence pane. */
+    container.innerHTML = `
+      <button class="back-link" id="backToQueue">&larr; Back to queue</button>
+      <div class="stub"><b>Not built yet</b>This queue case doesn't have a full case-review build in
+      this prototype &mdash; only the three hero cases do.</div>`;
+    $('#backToQueue').onclick = () => show('queue');
+    return;
+  }
+
+  const out = DATA.modelOutputs[id] || {};
+
+  if (!docState[id]) {
+    docState[id] = { activeDocId: c.documents[0].id, openPage: null, hlQuote: null };
+  }
+
+  container.innerHTML = `
+    <button class="back-link" id="backToQueue">&larr; Back to queue</button>
+    ${bannerHTML(c)}
+    <div class="case-body">
+      ${evidencePaneHTML(c, out, id)}
+      ${documentPaneHTML(c, id)}
+    </div>`;
+
+  bindCaseEvents(id);
+}
+
+/* Every interaction below just mutates docState/disagreements and calls
+   renderCase again rather than patching individual nodes -- see the
+   docState comment above for why. */
+function bindCaseEvents(id) {
+  $('#backToQueue').onclick = () => show('queue');
+
+  $('#caseContent').querySelectorAll('.citation').forEach(btn => {
+    btn.onclick = () => {
+      const f = DATA.modelOutputs[id].findings[+btn.dataset.idx];
+      /* This is the "jump to source" interaction: point the document pane
+         at the cited doc/page and hand it the exact quote to highlight,
+         while the finding card itself never leaves the evidence pane. */
+      docState[id] = { activeDocId: f.documentId, openPage: f.page, hlQuote: f.quote };
+      renderCase(id);
+      scrollHighlightIntoView();
+    };
+  });
+
+  $('#caseContent').querySelectorAll('.doc-tab').forEach(btn => {
+    btn.onclick = () => {
+      docState[id] = { activeDocId: btn.dataset.doc, openPage: null, hlQuote: null };
+      renderCase(id);
+    };
+  });
+
+  $('#caseContent').querySelectorAll('.page-toggle').forEach(btn => {
+    btn.onclick = () => {
+      const page = +btn.dataset.page;
+      const s = docState[id];
+      const closing = s.openPage === page;
+      s.openPage = closing ? null : page;
+      if (closing) s.hlQuote = null;
+      renderCase(id);
+    };
+  });
+
+  $('#caseContent').querySelectorAll('.disagree-btn').forEach(btn => {
+    btn.onclick = () => {
+      btn.hidden = true;
+      btn.nextElementSibling.hidden = false;
+    };
+  });
+
+  $('#caseContent').querySelectorAll('.disagree-form').forEach(form => {
+    form.onsubmit = e => {
+      e.preventDefault();
+      const val = form.querySelector('input').value.trim();
+      if (!val) return;
+      disagreements[`${id}::${form.dataset.idx}`] = val;
+      renderCase(id);
+    };
+  });
+}
+
+/* ---------- navigation ---------- */
+function show(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === name));
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.view === name));
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => show(b.dataset.view));
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coverage Evidence Assistant — UM Review</title>
+<style>
+  :root {
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#16191d; --ink-2:#4a5058; --ink-3:#767d87;
+    --line:#e2e5ea; --line-2:#cfd4db;
+    --accent:#1a5f7a; --accent-soft:#e8f1f5;
+    --flag:#8a5a00; --flag-soft:#fdf4e3; --flag-line:#e8c98a;
+    --conflict:#8c2f28; --conflict-soft:#fbeeed; --conflict-line:#e5b3ae;
+    --ok:#1f6b45; --ok-soft:#eaf4ee;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- chrome ---------- */
+  header {
+    background:var(--panel); border-bottom:1px solid var(--line);
+    padding:0 20px; display:flex; align-items:center; gap:28px;
+    position:sticky; top:0; z-index:10;
+  }
+  .brand { font-weight:600; padding:14px 0; letter-spacing:-0.01em; }
+  .brand span { color:var(--ink-3); font-weight:400; }
+  nav { display:flex; gap:2px; margin-left:auto; }
+  nav button {
+    background:none; border:none; font:inherit; color:var(--ink-2);
+    padding:16px 14px; cursor:pointer; border-bottom:2px solid transparent;
+  }
+  nav button:hover { color:var(--ink); }
+  nav button.on { color:var(--accent); border-bottom-color:var(--accent); font-weight:500; }
+
+  main { max-width:1180px; margin:0 auto; padding:24px 20px 64px; }
+  .view { display:none; }
+  .view.on { display:block; }
+
+  h1 { font-size:19px; margin:0 0 4px; letter-spacing:-0.01em; }
+  .sub { color:var(--ink-3); margin:0 0 20px; }
+
+  /* ---------- queue ---------- */
+  .queue { background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  table { width:100%; border-collapse:collapse; }
+  th {
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em;
+    color:var(--ink-3); font-weight:600; padding:10px 14px;
+    border-bottom:1px solid var(--line); background:#fafbfc;
+  }
+  td { padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:last-child td { border-bottom:none; }
+  tbody tr { cursor:pointer; }
+  tbody tr:hover { background:#fafbfc; }
+  tbody tr.flagged { background:var(--flag-soft); }
+  tbody tr.flagged:hover { background:#fbefd8; }
+
+  .mid { font-family:var(--mono); font-size:12px; color:var(--ink-2); }
+  .who { font-weight:500; }
+  .meta { color:var(--ink-3); font-size:12.5px; margin-top:2px; }
+
+  .tag {
+    display:inline-block; font-size:11px; font-weight:600; padding:3px 8px;
+    border-radius:11px; border:1px solid;
+  }
+  .tag.flag { color:var(--flag); background:var(--flag-soft); border-color:var(--flag-line); }
+  .tag.conflict { color:var(--conflict); background:var(--conflict-soft); border-color:var(--conflict-line); }
+  .tag.quiet { color:var(--ink-3); background:#f2f4f6; border-color:var(--line-2); }
+
+  .due { font-variant-numeric:tabular-nums; }
+  .due.soon { color:var(--conflict); font-weight:600; }
+
+  .filters { display:flex; align-items:center; gap:20px; margin-bottom:14px; flex-wrap:wrap; }
+  .filters label { font-size:12.5px; color:var(--ink-3); display:flex; align-items:center; gap:6px; }
+  .filters select {
+    font:inherit; font-size:13px; padding:5px 8px; border:1px solid var(--line-2); border-radius:6px;
+    background:var(--panel); color:var(--ink); cursor:pointer;
+  }
+  .filter-count { font-size:12.5px; color:var(--ink-3); margin-left:auto; }
+
+  /* ---------- summary strip ---------- */
+  .strip { display:flex; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .stat {
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:12px 16px; min-width:132px; flex:1;
+  }
+  .stat .n { font-size:22px; font-weight:600; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
+  .stat .l { font-size:12px; color:var(--ink-3); margin-top:1px; }
+
+  /* ---------- notices ---------- */
+  .stub {
+    background:var(--panel); border:1px dashed var(--line-2); border-radius:8px;
+    padding:36px; text-align:center; color:var(--ink-3);
+  }
+  .stub b { color:var(--ink-2); display:block; margin-bottom:6px; font-weight:600; }
+  code { font-family:var(--mono); font-size:12.5px; background:#eef0f3; padding:1px 5px; border-radius:3px; }
+
+  /* ---------- case screen ---------- */
+  .back-link {
+    background:none; border:none; color:var(--accent); font:inherit; cursor:pointer;
+    padding:0 0 14px; display:block;
+  }
+  .case-banner {
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:14px 18px; margin-bottom:16px;
+  }
+  .banner-row { display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:6px; }
+  .banner-row:last-of-type { margin-bottom:0; }
+  .nurse-note {
+    margin-top:10px; padding-top:10px; border-top:1px solid var(--line);
+    font-size:13px; color:var(--ink-2);
+  }
+  .nurse-note .l { color:var(--ink-3); font-size:12px; margin-bottom:4px; }
+  .nurse-note .reason { margin-top:6px; }
+
+  /* Evidence pane (left) and document pane (right) sit side by side so a
+     citation click can highlight the source passage while the quote that
+     cites it stays visible -- neither pane ever covers the other. */
+  .case-body { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
+  .evidence-pane { display:flex; flex-direction:column; gap:12px; }
+
+  .claims-block {
+    background:var(--ok-soft); border:1px solid #bfe0cd; border-radius:8px; padding:12px 14px;
+  }
+  .claims-title, .findings-title {
+    font-size:11px; text-transform:uppercase; letter-spacing:0.05em; font-weight:600;
+    color:var(--ink-3); margin-bottom:6px;
+  }
+  .claims-row { font-size:13px; margin-bottom:8px; }
+  .claims-row:last-child { margin-bottom:0; }
+  .claims-row .cond { font-weight:600; color:var(--ok); }
+  .claims-row .basis { color:var(--ink-2); margin-top:2px; }
+
+  .finding-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+  .citation {
+    font-family:var(--mono); font-size:11.5px; background:var(--accent-soft); color:var(--accent);
+    border:1px solid #c5dde6; border-radius:4px; padding:2px 8px; cursor:pointer; margin-right:8px;
+  }
+  .citation:hover { background:#d9ecf3; }
+  .verified { font-size:11.5px; font-weight:600; }
+  .verified.ok { color:var(--ok); }
+  .verified.warn { color:var(--conflict); }
+  .finding-card blockquote {
+    margin:8px 0; padding:8px 10px; border-left:3px solid var(--line-2);
+    font-style:italic; color:var(--ink); font-size:13px;
+  }
+  .finding-card .relevance { font-size:13px; color:var(--ink-2); }
+  .finding-card .concern {
+    margin-top:8px; padding:8px 10px; background:var(--flag-soft); border:1px solid var(--flag-line);
+    border-radius:6px; font-size:12.5px; color:var(--flag);
+  }
+  .disagree { margin-top:10px; }
+  .disagree-btn {
+    background:none; border:1px solid var(--line-2); border-radius:6px; padding:4px 10px;
+    font:inherit; font-size:12.5px; color:var(--ink-2); cursor:pointer;
+  }
+  .disagree-btn:hover { border-color:var(--conflict); color:var(--conflict); }
+  .disagree-form { display:flex; gap:6px; }
+  .disagree-form input {
+    flex:1; font:inherit; font-size:12.5px; padding:5px 8px; border:1px solid var(--line-2); border-radius:6px;
+  }
+  .disagree-form button {
+    font:inherit; font-size:12.5px; padding:5px 10px; border:1px solid var(--accent); background:var(--accent);
+    color:#fff; border-radius:6px; cursor:pointer;
+  }
+  .disagreed { font-size:12.5px; color:var(--ink-3); font-style:italic; }
+  .no-findings { font-size:13px; color:var(--ink-3); font-style:italic; }
+
+  /* .no-finding reuses .finding-card's box (border/padding/background)
+     on purpose -- silence should carry the same visual weight as a real
+     finding, not read as a lesser or broken state. */
+  .no-finding-label {
+    font-size:11px; text-transform:uppercase; letter-spacing:0.05em; font-weight:600;
+    color:var(--ink-3); margin-bottom:6px;
+  }
+  .no-finding-text { font-size:14px; color:var(--ink); margin:0; }
+
+  /* Itemized claim lines inside the claims block -- only rendered when a
+     diagnosis pointer is the fact doing the work. */
+  .claims-ledger { margin-top:10px; padding-top:10px; border-top:1px solid #bfe0cd; }
+  .ledger-label {
+    font-size:11px; text-transform:uppercase; letter-spacing:0.05em; font-weight:600;
+    color:var(--ink-3); margin-bottom:6px;
+  }
+  .claim-line { display:flex; align-items:center; gap:8px; font-size:12.5px; padding:3px 0; flex-wrap:wrap; }
+  .claim-line .dos { font-family:var(--mono); color:var(--ink-3); min-width:78px; }
+  .claim-line .desc { color:var(--ink-2); }
+  .claim-line .dx-pointer {
+    margin-left:auto; font-size:11px; font-weight:600; color:var(--conflict);
+    background:var(--conflict-soft); border:1px solid var(--conflict-line);
+    border-radius:11px; padding:2px 8px;
+  }
+
+  /* Conflict banner: claims layer and narrative layer disagree. Deliberately
+     states the disagreement only -- no verdict. */
+  .conflict-banner {
+    background:var(--conflict-soft); border:1px solid var(--conflict-line); color:var(--conflict);
+    border-radius:8px; padding:10px 14px; font-size:13px;
+  }
+
+  /* Document pane: tabs across the top, then either flat text or a
+     collapsible per-page list for faxed multi-page packets. It is its own
+     scroll container (overflow-y:auto) with a height pinned to the viewport
+     (not a fixed px value, so it fits any screen), and sticky so it stays in
+     place while the evidence pane on the left scrolls independently. This
+     matters for citation clicks: scrolling to a highlighted passage must
+     happen INSIDE this box, never by scrolling the whole page, or the quote
+     that triggered the jump (in the evidence pane) can end up off-screen. */
+  .document-pane {
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:12px 14px; overflow-y:auto; position:sticky;
+    top:76px; max-height:calc(100vh - 96px);
+  }
+  .doc-tabs { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px; }
+  .doc-tab {
+    font:inherit; font-size:12px; background:#f2f4f6; border:1px solid var(--line-2);
+    border-radius:6px; padding:4px 9px; cursor:pointer; color:var(--ink-2);
+  }
+  .doc-tab.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .doc-meta { font-size:12px; color:var(--ink-3); margin-bottom:10px; }
+  .doc-flat, .page-text { white-space:pre-wrap; font-size:13px; line-height:1.6; color:var(--ink-2); }
+  .doc-page { border-top:1px solid var(--line); padding:6px 0; }
+  .doc-page:first-child { border-top:none; }
+  .page-toggle {
+    background:none; border:none; font:inherit; font-size:12.5px; font-weight:500;
+    color:var(--ink-2); cursor:pointer; padding:4px 0; text-align:left; width:100%;
+  }
+  .doc-page.open .page-toggle { color:var(--accent); }
+  .page-text { margin-top:6px; }
+  mark.hl { background:#fdf1a8; padding:0 2px; border-radius:2px; }
+
+  @media (max-width: 860px) {
+    .case-body { grid-template-columns:1fr; }
+    .document-pane { position:static; max-height:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Coverage Evidence Assistant <span>· Utilization Management</span></div>
+  <nav>
+    <button data-view="queue" class="on">Review Queue</button>
+    <button data-view="case">Case</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ============ QUEUE ============ -->
+  <section id="queue" class="view on">
+    <h1>Pending clinical review</h1>
+    <p class="sub">Cases routed for clinician review before an adverse determination is issued. Advanced imaging · LCD L34220.</p>
+    <div class="strip" id="stats"></div>
+    <div class="filters">
+      <label>Due
+        <select id="filterDue">
+          <option value="all">All</option>
+          <option value="today">Due today</option>
+          <option value="2days">Due within 2 days</option>
+        </select>
+      </label>
+      <label>Evidence assistant
+        <select id="filterEvidence">
+          <option value="all">All</option>
+          <option value="found">Evidence found</option>
+          <option value="conflict">Sources conflict</option>
+          <option value="none">No finding</option>
+        </select>
+      </label>
+      <span class="filter-count" id="filterCount"></span>
+    </div>
+    <div class="queue"><table>
+      <thead><tr>
+        <th style="width:130px">Case</th>
+        <th>Member</th>
+        <th style="width:190px">Request</th>
+        <th style="width:150px">Evidence assistant</th>
+        <th style="width:96px">Decision due</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </section>
+
+  <!-- ============ CASE ============ -->
+  <section id="case" class="view">
+    <div id="caseContent"></div>
+  </section>
+</main>
+
+<script>
+const DATA = {"heroCases":[{"id":"PA-2026-114872","demoRole":"HERO_1_THE_FIND","member":{"name":"Margaret Ellison","age":72,"sex":"F","memberId":"H884201736","plan":"Medicare Advantage HMO","enrolledSince":"2019-01-01","language":"English","priorAppeals":0},"request":{"cpt":"72148","description":"MRI lumbar spine without contrast","icd10":[{"code":"M54.50","description":"Low back pain, unspecified"},{"code":"M51.36","description":"Other intervertebral disc degeneration, lumbar region"}],"requestingProvider":"Aaron Whitfield, MD","specialty":"Family Medicine","facility":"Northgate Family Health","submittedDate":"2026-08-26","urgency":"standard","submissionMethod":"provider portal with faxed attachments"},"review":{"status":"pending_medical_director","nurseReviewer":"K. Osei, RN","nurseRoutedDate":"2026-08-28","nurseNote":"Unable to locate documentation of conservative management \u22654 weeks per L34220. Referring note references chronic symptoms but does not state treatment dates or duration. No red-flag indicators identified on review of the referring note. Outside records packet received (14 pp) \u2014 not itemized. Routing for medical director determination.","proposedAction":"deny","proposedReason":"Insufficient documentation of a four-week trial of conservative management (LCD L34220, criterion C2).","clockStartDate":"2026-08-26","decisionDueDate":"2026-09-02"},"documents":[{"id":"DOC-1","type":"Prior Authorization Request Form","source":"Northgate Family Health","date":"2026-08-26","pages":1,"content":"PRIOR AUTHORIZATION REQUEST\n\nMember: ELLISON, MARGARET   ID: H884201736   DOB: [redacted]\nRequesting Provider: Aaron Whitfield, MD   NPI: [synthetic]\nFacility: Northgate Family Health\n\nRequested Service: MRI LUMBAR SPINE WITHOUT CONTRAST (72148)\nDiagnosis: M54.50 Low back pain, unspecified; M51.36 Other intervertebral disc degeneration, lumbar region\nPlace of Service: Outpatient imaging\nUrgency: Standard\n\nClinical Justification (free text): Persistent low back pain with radiation to left lower extremity. Has failed conservative treatment. Requesting MRI to evaluate for disc herniation and nerve root involvement prior to referral to spine surgery.\n\nAttachments: office note 08/12/2026; outside records; medication list; lumbar radiograph report."},{"id":"DOC-2","type":"Office Note","source":"Northgate Family Health \u2014 A. Whitfield, MD","date":"2026-08-12","pages":2,"content":"NORTHGATE FAMILY HEALTH\nOffice Visit Note \u2014 08/12/2026\nPatient: Margaret Ellison, 72 y/o female\n\nCHIEF COMPLAINT: Ongoing low back pain.\n\nHISTORY OF PRESENT ILLNESS:\nMs. Ellison returns for follow-up of chronic low back pain. She reports the pain has been present for approximately eight months and has not meaningfully improved. Pain is described as aching and constant across the lower lumbar region with intermittent radiation down the posterior left thigh to just below the knee. She notes the leg symptoms have become more frequent over the past six weeks. Denies bowel or bladder changes. Denies fever, chills, night sweats, or unintentional weight loss. No history of malignancy. No recent trauma.\n\nShe reports she has tried therapy in the past without much benefit and states she has been taking an anti-inflammatory. She describes difficulty with prolonged standing and reports she has stopped attending her weekly community exercise class because of the pain.\n\nPAST MEDICAL HISTORY: Hypertension. Osteoarthritis. Hyperlipidemia. Type 2 diabetes mellitus, diet-controlled.\n\nPHYSICAL EXAMINATION:\nVitals: BP 138/78, HR 74, T 98.2F, BMI 29.4\nGeneral: Well-appearing, no acute distress. Ambulates without assistive device.\nBack: Tenderness to palpation over the L4-L5 paraspinal musculature bilaterally, left greater than right. Lumbar flexion limited to approximately 45 degrees, limited by pain. Extension limited and reproduces left-sided symptoms.\nNeuro: Strength 5/5 throughout bilateral lower extremities. Sensation intact to light touch. Deep tendon reflexes 2+ and symmetric at patella; 1+ at Achilles bilaterally. Straight leg raise positive on the left at approximately 50 degrees. Negative on the right.\nGait: Normal. Heel and toe walk intact.\n\nASSESSMENT:\n1. Chronic low back pain with left lower extremity radicular features, progressive.\n2. Known lumbar degenerative disc disease per prior radiograph.\n\nPLAN:\nGiven persistence of symptoms despite prior treatment and the progressive radicular component, will obtain MRI of the lumbar spine to evaluate for disc herniation with nerve root compression. Records requested from Cascade Valley and received \u2014 forwarded with this request. Continue current medication. Will refer to spine surgery pending imaging results. Patient verbalizes understanding.\n\nA. Whitfield, MD"},{"id":"DOC-3","type":"Outside Records Packet","source":"Cascade Valley Orthopedics & Rehabilitation","date":"2026-08-08","pages":14,"note":"Received by fax. Not itemized by intake. Contains intake paperwork, insurance forms, multiple therapy session notes, and a discharge summary.","sections":[{"page":1,"heading":"Fax Cover Sheet","text":"CASCADE VALLEY ORTHOPEDICS & REHABILITATION\nFAX TRANSMITTAL\nTo: Northgate Family Health, Attn: Records\nFrom: Medical Records\nDate: 08/08/2026\nPages including cover: 14\nRe: ELLISON, MARGARET\nComments: Records released per signed authorization. Please direct questions to the records department."},{"page":2,"heading":"Patient Registration and Consent","text":"Patient registration form. Demographics, emergency contact, insurance information, financial responsibility acknowledgment, HIPAA notice of privacy practices acknowledgment, consent to treat. Signed 02/24/2026."},{"page":3,"heading":"Referral","text":"Referral received from Northgate Family Health dated 02/18/2026. Reason for referral: low back pain, evaluate and treat. Frequency requested: 2x/week for 6 weeks. Precautions: none noted."},{"page":4,"heading":"Physical Therapy Initial Evaluation \u2014 02/24/2026","text":"PHYSICAL THERAPY INITIAL EVALUATION\nDate: 02/24/2026\nPatient: Ellison, Margaret   Age: 72\nReferring: A. Whitfield, MD\nDiagnosis: Low back pain (M54.50)\n\nSUBJECTIVE: Patient reports low back pain present approximately 3 months, worse with prolonged standing and rising from seated position. Rates pain 6/10 at worst, 3/10 at best. Reports occasional discomfort into the left buttock. Denies numbness or weakness. Goals: reduce pain, return to community exercise class, walk her dog without stopping.\n\nOBJECTIVE: Lumbar AROM: flexion 50 deg, extension 15 deg with pain. Tenderness L4-S1 paraspinals. Strength grossly 5/5 bilateral LE. Negative SLR bilaterally this date. Ambulates independently.\n\nASSESSMENT: Patient presents with mechanical low back pain with functional limitations in standing tolerance and ambulation. Good rehabilitation potential.\n\nPLAN: Skilled PT 2x/week for 6 weeks. Lumbar stabilization, hip and core strengthening, postural education, home exercise program.\n\nJ. Amara, PT, DPT"},{"page":5,"heading":"Therapy Session Notes 1-4","text":"02/26/2026 \u2014 Visit 1. Lumbar stabilization introduced. Tolerated well. Pain 5/10 post-session.\n03/03/2026 \u2014 Visit 2. Progressed core program. Reports minimal change in symptoms. Pain 6/10.\n03/05/2026 \u2014 Visit 3. Added hip abductor strengthening. Patient reports soreness following prior session. Pain 6/10.\n03/10/2026 \u2014 Visit 4. Continued program. Patient reports no appreciable change in baseline pain. Discussed expectations regarding timeline."},{"page":6,"heading":"Therapy Session Notes 5-8","text":"03/17/2026 \u2014 Visit 5. HEP reviewed and updated. Patient adherent per report. Pain 6/10.\n03/24/2026 \u2014 Visit 6. Manual therapy added. Transient relief reported during session, symptoms returned same day.\n03/31/2026 \u2014 Visit 7. Patient reports increased left buttock discomfort with extension-based activity. Modified program accordingly.\n04/04/2026 \u2014 Visit 8. Final scheduled visit. Reassessment performed, see discharge summary."},{"page":7,"heading":"Insurance Correspondence","text":"Explanation of benefits correspondence and authorization tracking for the therapy episode. Administrative content only."},{"page":8,"heading":"Home Exercise Program Handout","text":"Printed patient handout: pelvic tilt, bridging, quadruped alternating arm/leg, seated hamstring stretch, standing hip abduction. Instructions to perform daily. Adherence log attached, partially completed by patient."},{"page":9,"heading":"Physical Therapy Discharge Summary \u2014 04/04/2026","isKeyEvidence":true,"text":"PHYSICAL THERAPY DISCHARGE SUMMARY\nDate of Discharge: 04/04/2026\nPatient: Ellison, Margaret\nDates of Service: 02/24/2026 through 04/04/2026\nTotal Visits Attended: 8 of 12 scheduled (4 cancellations, patient report of transportation difficulty)\nDuration of Episode: 6 weeks\n\nSUBJECTIVE AT DISCHARGE: Patient reports her low back pain is essentially unchanged from initial evaluation. Rates pain 6/10 at worst. Reports the left buttock and posterior thigh discomfort has become somewhat more frequent over the course of the episode. States she has been performing her home exercise program most days.\n\nOBJECTIVE AT DISCHARGE: Lumbar flexion 50 deg (unchanged from initial). Extension 15 deg with reproduction of left-sided symptoms. Strength remains 5/5 bilateral LE. Standing tolerance unchanged at approximately 10 minutes.\n\nGOALS: 0 of 3 functional goals met.\n\nASSESSMENT: Patient has completed a six-week course of skilled physical therapy without meaningful improvement in pain or function. Symptoms have not responded to conservative management including therapeutic exercise, manual therapy, postural education, and an independent home exercise program. The emergence of more frequent radicular-pattern symptoms during the episode is noted.\n\nRECOMMENDATION: Discharge from skilled physical therapy. Return to referring physician for further evaluation. Recommend physician consider additional workup given lack of response to conservative care and progressive radicular features.\n\nJ. Amara, PT, DPT"},{"page":10,"heading":"Attendance Record","text":"Visit attendance grid for the episode of care, 02/24/2026 - 04/04/2026. Eight attended, four cancelled."},{"page":11,"heading":"Outcome Measure Forms","text":"Oswestry Disability Index completed at initial evaluation (score 38%) and at discharge (score 36%). Minimal clinically important difference not achieved."},{"page":12,"heading":"Prior Clinic Correspondence","text":"Letter to referring physician acknowledging referral, dated 02/20/2026."},{"page":13,"heading":"Billing Summary","text":"Itemized charges for the therapy episode. Administrative content only."},{"page":14,"heading":"Records Release Authorization","text":"Signed authorization for release of records to Northgate Family Health, dated 08/06/2026."}]},{"id":"DOC-4","type":"Medication List","source":"Northgate Family Health","date":"2026-08-12","pages":1,"content":"ACTIVE MEDICATIONS \u2014 as of 08/12/2026\n\nlisinopril 20 mg daily \u2014 start 2018-04-11\natorvastatin 40 mg nightly \u2014 start 2020-09-02\nmeloxicam 15 mg daily \u2014 start 2026-03-02 \u2014 indication: low back pain \u2014 continued\nacetaminophen 650 mg PRN \u2014 start 2026-02-20 \u2014 indication: low back pain\nmetformin discontinued 2024 \u2014 diet controlled\n\nNote: patient counseled on NSAID use with attention to renal function; BMP 07/2026 within normal limits."},{"id":"DOC-5","type":"Radiology Report","source":"Northgate Imaging","date":"2026-07-30","pages":1,"content":"RADIOLOGY REPORT\nExam: Lumbar spine, 2 views\nDate: 07/30/2026\nIndication: Chronic low back pain\n\nFINDINGS: Vertebral body heights are maintained. Moderate disc space narrowing at L4-L5 and mild narrowing at L5-S1. Anterior osteophyte formation at multiple levels consistent with degenerative change. Facet arthropathy at L4-L5 and L5-S1. No acute fracture. No spondylolisthesis. Alignment within normal limits. Sacroiliac joints unremarkable.\n\nIMPRESSION: Multilevel degenerative changes of the lumbar spine, most pronounced at L4-L5. No acute osseous abnormality. Correlate clinically; radiographs do not evaluate for disc herniation or neural compression.\n\nElectronically signed, Radiology"}],"groundTruth":{"criteriaMet":true,"supportingCriteria":["C2"],"correctAction":"approve","evidenceLocation":"DOC-3, page 9 (PT discharge summary, 6-week episode 02/24/2026-04/04/2026, goals not met, explicitly documents non-response to conservative management). Corroborated by DOC-4 (meloxicam initiated 03/02/2026, ongoing).","whyItGetsMissed":"The conservative management evidence sits on page 9 of an unitemized 14-page faxed outside-records packet from a different practice, five months before the request. The referring physician's own note says only 'has tried therapy in the past' with no dates or duration \u2014 which is what the nurse reviewer read.","oigMechanism":"Matches OIG April 2022 finding: plan claims insufficient documentation when the existing medical records were in fact sufficient to support medical necessity."},"claimsHistory":{"_role":"Establishes DURATION. Cannot establish non-response.","lookbackMonths":18,"query":"conservative management for lumbar complaint \u2014 PT, chiropractic, injections","found":true,"records":[{"claimId":"C-2026-0331847","dos":"2026-02-26","cpt":"97110","description":"Therapeutic exercise, each 15 min","provider":"Cascade Valley Orthopedics & Rehabilitation","status":"paid","units":2},{"claimId":"C-2026-0334102","dos":"2026-03-03","cpt":"97110","description":"Therapeutic exercise, each 15 min","provider":"Cascade Valley Orthopedics & Rehabilitation","status":"paid","units":2},{"claimId":"C-2026-0336890","dos":"2026-03-05","cpt":"97140","description":"Manual therapy techniques","provider":"Cascade Valley Orthopedics & Rehabilitation","status":"paid","units":1},{"claimId":"C-2026-0341556","dos":"2026-03-10","cpt":"97110","description":"Therapeutic exercise, each 15 min","provider":"Cascade Valley Orthopedics & Rehabilitation","status":"paid","units":2},{"claimId":"C-2026-0347221","dos":"2026-03-17","cpt":"97530","description":"Therapeutic activities","provider":"Cascade Valley Orthopedics & Rehabilitation","status":"paid","units":1},{"claimId":"C-2026-0352044","dos":"2026-03-24","cpt":"97140","description":"Manual therapy techniques","provider":"Cascade Valley Orthopedics & Rehabilitation","status":"paid","units":1},{"claimId":"C-2026-0357719","dos":"2026-03-31","cpt":"97110","description":"Therapeutic exercise, each 15 min","provider":"Cascade Valley Orthopedics & Rehabilitation","status":"paid","units":2},{"claimId":"C-2026-0361885","dos":"2026-04-04","cpt":"97162","description":"PT re-evaluation","provider":"Cascade Valley Orthopedics & Rehabilitation","status":"paid","units":1}],"derived":{"episodeStart":"2026-02-26","episodeEnd":"2026-04-04","durationWeeks":5.4,"visitCount":8,"criterionC2_durationSatisfied":true,"criterionC2_nonResponseEstablished":false,"statement":"8 paid therapy claims spanning 5.4 weeks. Duration requirement (>=4 weeks) satisfied on the plan's own claims record. Non-response is not determinable from claims."}}},{"id":"PA-2026-115003","demoRole":"HERO_2_THE_OVERRIDE","member":{"name":"Robert Cheng","age":68,"sex":"M","memberId":"H773094512","plan":"Medicare Advantage PPO","enrolledSince":"2023-01-01","language":"English","priorAppeals":0},"request":{"cpt":"72148","description":"MRI lumbar spine without contrast","icd10":[{"code":"M54.16","description":"Radiculopathy, lumbar region"}],"requestingProvider":"Priya Raghunathan, MD","specialty":"Internal Medicine","facility":"Lakeshore Internal Medicine","submittedDate":"2026-08-27","urgency":"standard","submissionMethod":"provider portal with faxed attachments"},"review":{"status":"pending_medical_director","nurseReviewer":"K. Osei, RN","nurseRoutedDate":"2026-08-29","nurseNote":"No documentation of conservative management for the lumbar complaint located in submitted records. Outside therapy records present but appear to relate to a separate orthopedic episode. No red flags documented. Routing for medical director determination.","proposedAction":"deny","proposedReason":"Insufficient documentation of a four-week trial of conservative management (LCD L34220, criterion C2).","clockStartDate":"2026-08-27","decisionDueDate":"2026-09-03"},"documents":[{"id":"DOC-1","type":"Office Note","source":"Lakeshore Internal Medicine \u2014 P. Raghunathan, MD","date":"2026-08-20","pages":2,"content":"LAKESHORE INTERNAL MEDICINE\nOffice Visit \u2014 08/20/2026\nPatient: Robert Cheng, 68 y/o male\n\nHPI: Patient presents with approximately five weeks of right-sided low back pain radiating into the lateral calf. Describes an electric, shooting quality with prolonged sitting. Symptoms began without clear inciting event. Denies bowel or bladder dysfunction, saddle anesthesia, fever, weight loss. No history of malignancy. No trauma.\n\nOf note, patient underwent right total knee arthroplasty in January of this year and completed a course of post-operative rehabilitation, which he reports went well. He has returned to walking regularly.\n\nPMH: Osteoarthritis. Right TKA 01/2026. Hypertension. GERD.\n\nEXAM: Lumbar paraspinal tenderness on the right. Flexion mildly limited. Right straight leg raise positive at 45 degrees. Strength 5/5 bilaterally. Sensation intact. Reflexes symmetric. Right knee well-healed, ROM 0-120, no effusion.\n\nASSESSMENT: Right lumbar radiculopathy, five weeks duration.\n\nPLAN: Request MRI lumbar spine to evaluate for disc herniation with nerve root compression. Start meloxicam. Discussed physical therapy referral; patient prefers to await imaging before starting therapy again given his recent rehab course. Follow up after imaging.\n\nP. Raghunathan, MD"},{"id":"DOC-2","type":"Outside Records Packet","source":"Meridian Physical Therapy","date":"2026-08-25","pages":9,"note":"Received by fax. Not itemized by intake.","sections":[{"page":1,"heading":"Fax Cover Sheet","text":"MERIDIAN PHYSICAL THERAPY\nFax transmittal to Lakeshore Internal Medicine. 9 pages including cover. Re: CHENG, ROBERT."},{"page":2,"heading":"Physical Therapy Initial Evaluation \u2014 01/28/2026","text":"PHYSICAL THERAPY INITIAL EVALUATION\nDate: 01/28/2026\nDiagnosis: Status post right total knee arthroplasty (Z96.651), 01/14/2026\nReferring: Orthopedic surgery\n\nSUBJECTIVE: Patient is 2 weeks status post right TKA. Reports expected post-surgical pain, using walker. Goals: independent ambulation without device, return to community walking.\n\nOBJECTIVE: Right knee AROM 5-85 deg. Quad strength 3+/5 right. Ambulates with rolling walker. Incision clean, dry, intact. Postural screen: mild lumbar lordosis noted in standing, no reported lumbar symptoms this date.\n\nPLAN: Skilled PT 3x/week for 8 weeks. Knee ROM, quadriceps strengthening, gait training, progressive weight bearing.\n\nT. Okonjo, PT"},{"page":3,"heading":"Therapy Session Notes \u2014 February 2026","text":"Weekly progression notes documenting right knee range of motion gains, quadriceps strengthening, and gait training progression from rolling walker to single-point cane. Lumbar spine not addressed."},{"page":4,"heading":"Therapy Session Notes \u2014 March 2026","text":"Continued knee-focused program. Patient progressing to independent ambulation. Stair training initiated. Notes reference generalized postural cueing during gait training."},{"page":5,"heading":"Physical Therapy Discharge Summary \u2014 03/24/2026","isDistractor":true,"text":"PHYSICAL THERAPY DISCHARGE SUMMARY\nDates of Service: 01/28/2026 through 03/24/2026\nDuration of Episode: 8 weeks\nTotal Visits: 21\n\nDIAGNOSIS TREATED: Status post right total knee arthroplasty, 01/14/2026.\n\nSUBJECTIVE AT DISCHARGE: Patient reports excellent progress. Minimal knee pain. Ambulating independently without assistive device. Has returned to daily walking.\n\nOBJECTIVE: Right knee AROM 0-122 deg. Quad strength 5/5. Independent ambulation, normal gait pattern. Postural assessment: lumbar lordosis within normal limits, no tenderness reported.\n\nGOALS: 4 of 4 functional goals met.\n\nASSESSMENT: Patient has completed an eight-week course of skilled physical therapy following right total knee arthroplasty with excellent functional outcome. All goals achieved.\n\nRECOMMENDATION: Discharge to independent home program.\n\nT. Okonjo, PT"},{"page":6,"heading":"Home Exercise Program","text":"Knee-focused home exercise handout: heel slides, quad sets, straight leg raises, standing knee flexion, step-ups."},{"page":7,"heading":"Attendance Record","text":"Visit grid, 01/28/2026 - 03/24/2026. 21 visits attended."},{"page":8,"heading":"Billing Summary","text":"Itemized charges. Administrative content only."},{"page":9,"heading":"Records Release","text":"Signed authorization dated 08/22/2026."}]},{"id":"DOC-3","type":"Medication List","source":"Lakeshore Internal Medicine","date":"2026-08-20","pages":1,"content":"ACTIVE MEDICATIONS \u2014 as of 08/20/2026\n\namlodipine 5 mg daily \u2014 start 2021-03-15\npantoprazole 40 mg daily \u2014 start 2022-08-01\nmeloxicam 15 mg daily \u2014 start 2026-08-20 \u2014 indication: lumbar radiculopathy \u2014 NEW this visit\nacetaminophen PRN"}],"groundTruth":{"criteriaMet":false,"correctAction":"deny","expectedModelBehavior":"flag_incorrectly","whyTheModelFlags":"The packet contains a complete, well-documented eight-week physical therapy course with a formal discharge summary, and the postural assessment lines mention the lumbar spine. On surface features this closely resembles documented conservative management.","whyTheModelIsWrong":"The therapy episode treated status post right total knee arthroplasty, not the lumbar complaint. The lumbar mentions are incidental postural screening. The lumbar symptoms began roughly five weeks before the request, four months after the therapy episode ended. No conservative management for the lumbar complaint has occurred \u2014 the referring note states the patient declined PT pending imaging, and meloxicam was started the same day as the request.","expectedOverrideReason":"Therapy course was post-operative knee rehabilitation, not conservative management directed at the lumbar complaint. Criterion C2 not met.","whyThisCaseMatters":"Two purposes. First, it proves the clinician is the decision-maker and that model errors are legible \u2014 a context error a reviewer spots in seconds, not a hallucination. Second, it demonstrates the cascade's most important property: when the deterministic layer and the judgment layer disagree, the system surfaces the conflict rather than picking a winner. Disagreement between layers is the highest-value signal in the system, because it marks exactly the cases where the answer is genuinely ambiguous.","expectedSystemBehavior":"surface_conflict","layerDisagreement":{"claimsLayer":"No conservative management for a lumbar diagnosis. All 21 therapy claims carry diagnosis pointer Z96.651 (right knee arthroplasty).","narrativeLayer":"Physical therapy discharge summary located, 8-week episode, formal goals documented \u2014 surface features resemble documented conservative management.","resolution":"The claims layer is correct. The narrative layer was misled by a complete, well-formatted therapy record whose lumbar references are incidental postural screening.","systemAction":"Present both findings side by side, marked as conflicting. Do not silently resolve. The reviewer adjudicates."}},"claimsHistory":{"_role":"Shows why claims alone are insufficient in the other direction \u2014 the claims look right until you read the diagnosis pointer.","lookbackMonths":18,"query":"conservative management for lumbar complaint \u2014 PT, chiropractic, injections","found":true,"records":[{"claimId":"C-2026-0298114","dos":"2026-01-28","cpt":"97161","description":"PT evaluation, low complexity","provider":"Meridian Physical Therapy","status":"paid","units":1,"diagnosisPointer":"Z96.651 \u2014 presence of right artificial knee joint"},{"claimId":"C-2026-0301990","dos":"2026-02-11","cpt":"97110","description":"Therapeutic exercise, each 15 min","provider":"Meridian Physical Therapy","status":"paid","units":3,"diagnosisPointer":"Z96.651 \u2014 presence of right artificial knee joint"},{"claimId":"C-2026-0309447","dos":"2026-03-04","cpt":"97116","description":"Gait training therapy","provider":"Meridian Physical Therapy","status":"paid","units":2,"diagnosisPointer":"Z96.651 \u2014 presence of right artificial knee joint"},{"claimId":"C-2026-0316302","dos":"2026-03-24","cpt":"97162","description":"PT re-evaluation","provider":"Meridian Physical Therapy","status":"paid","units":1,"diagnosisPointer":"Z96.651 \u2014 presence of right artificial knee joint"}],"derived":{"episodeStart":"2026-01-28","episodeEnd":"2026-03-24","durationWeeks":8.0,"visitCount":21,"criterionC2_durationSatisfied":false,"criterionC2_nonResponseEstablished":false,"statement":"21 paid therapy claims spanning 8 weeks, but every claim carries a diagnosis pointer of Z96.651 (right knee arthroplasty), not a lumbar diagnosis. No conservative management for the lumbar complaint appears in claims.","note":"The diagnosis pointer is the deterministic signal that distinguishes this case from PA-2026-114872. The claims layer gets this RIGHT where the narrative reading gets it WRONG."}}},{"id":"PA-2026-115147","demoRole":"HERO_3_THE_SILENCE","member":{"name":"Dolores Ramirez","age":79,"sex":"F","memberId":"H905513288","plan":"Medicare Advantage HMO","enrolledSince":"2016-01-01","language":"Spanish","priorAppeals":0},"request":{"cpt":"72148","description":"MRI lumbar spine without contrast","icd10":[{"code":"M51.36","description":"Other intervertebral disc degeneration, lumbar region"}],"requestingProvider":"Daniel Restrepo, MD","specialty":"Family Medicine","facility":"Riverbend Community Health","submittedDate":"2026-08-28","urgency":"standard","submissionMethod":"provider portal"},"review":{"status":"pending_medical_director","nurseReviewer":"K. Osei, RN","nurseRoutedDate":"2026-08-29","nurseNote":"Prior lumbar MRI on file dated 07/15/2026, six weeks prior to this request. Referring documentation does not indicate interval change in symptoms or new neurologic findings. Possible duplicative imaging per L34220. Routing for medical director determination.","proposedAction":"deny","proposedReason":"Duplication of prior imaging without documented interval change (LCD L34220, criterion C3).","clockStartDate":"2026-08-28","decisionDueDate":"2026-09-04"},"documents":[{"id":"DOC-1","type":"Office Note","source":"Riverbend Community Health \u2014 D. Restrepo, MD","date":"2026-08-25","pages":1,"content":"RIVERBEND COMMUNITY HEALTH\nOffice Visit \u2014 08/25/2026\nPatient: Dolores Ramirez, 79 y/o female. Interpreter present.\n\nHPI: Patient returns for follow-up of chronic low back pain, longstanding. Reports symptoms are unchanged since her last visit. Pain remains 4/10, worse with prolonged activity, relieved with rest. No new radiation. Denies numbness, weakness, bowel or bladder changes, fever, or weight loss. No falls or trauma in the interval.\n\nShe asks whether the imaging can be repeated because her daughter has read that MRI findings can change.\n\nEXAM: Unchanged from prior. Mild lumbar paraspinal tenderness. Flexion 55 deg. Strength 5/5 bilateral LE. Sensation intact. Reflexes symmetric. Negative straight leg raise bilaterally.\n\nASSESSMENT: Chronic low back pain secondary to known lumbar degenerative disc disease. Clinically stable, no interval change.\n\nPLAN: Patient requests repeat MRI. Will submit request. Continue current conservative measures. Discussed that findings are unlikely to change management at this time. No surgical consideration at present.\n\nD. Restrepo, MD"},{"id":"DOC-2","type":"Radiology Report","source":"Riverbend Imaging","date":"2026-07-15","pages":1,"content":"RADIOLOGY REPORT\nExam: MRI lumbar spine without contrast\nDate: 07/15/2026\nIndication: Chronic low back pain\n\nFINDINGS: Multilevel degenerative disc disease most pronounced at L4-L5 with disc desiccation and mild disc height loss. Mild broad-based disc bulge at L4-L5 without significant central canal stenosis. Mild bilateral facet arthropathy at L4-L5 and L5-S1. Neural foramina patent bilaterally. No nerve root compression identified. No fracture, marrow replacement, or abnormal enhancement. Conus terminates at L1.\n\nIMPRESSION: Multilevel lumbar degenerative disc disease without significant stenosis or nerve root compression. No acute finding.\n\nElectronically signed, Radiology"},{"id":"DOC-3","type":"Medication List","source":"Riverbend Community Health","date":"2026-08-25","pages":1,"content":"ACTIVE MEDICATIONS \u2014 as of 08/25/2026\n\namlodipine 10 mg daily\nlevothyroxine 75 mcg daily\nacetaminophen 650 mg TID PRN \u2014 indication: low back pain \u2014 ongoing since 2024"}],"groundTruth":{"criteriaMet":false,"correctAction":"deny","expectedModelBehavior":"stay_silent","reasoning":"Prior lumbar MRI six weeks earlier. Documentation explicitly states symptoms unchanged, examination unchanged, no new neurologic findings, and no surgical consideration. Criterion C3 (duplicative imaging) applies and criterion C4 (uncomplicated DDD without surgical consideration) also applies. There is no buried supporting evidence to find, because none exists.","whyThisCaseMatters":"Proves the system is selective rather than an approval machine. A tool that flags every case is a tool that gets ignored. Also seeds the equity discussion: this member has limited English proficiency and no prior appeals, which is exactly the profile least likely to challenge a denial \u2014 so the correctness of the first decision matters most here."},"claimsHistory":{"_role":"Nothing to find. Claims confirm the absence rather than inferring it.","lookbackMonths":18,"query":"conservative management for lumbar complaint \u2014 PT, chiropractic, injections","found":false,"records":[],"derived":{"criterionC2_durationSatisfied":false,"criterionC2_nonResponseEstablished":false,"statement":"No therapy, chiropractic, or injection claims for a lumbar diagnosis in the 18-month lookback.","priorImagingClaim":{"claimId":"C-2026-0402118","dos":"2026-07-15","cpt":"72148","description":"MRI lumbar spine without contrast","status":"paid","note":"Directly establishes criterion C3 (duplicative imaging) from the plan's own record \u2014 no reading required."}}}}],"queueCases":[{"id":"PA-2026-115291","scenario":"genuinely_no_conservative","member":{"name":"Josephine Brennan","age":68,"sex":"F","memberId":"H740406463","plan":"Medicare Advantage PPO","language":"English","priorAppeals":0},"request":{"cpt":"72158","description":"MRI lumbar spine","icd10":{"code":"M51.36","description":"Other intervertebral disc degeneration, lumbar region"},"requestingProvider":"Ingrid Halvorsen, MD","specialty":"Neurology","facility":"Summit Neurology Associates","submittedDate":"2026-08-31","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"D. Whitlock, RN","nurseNote":"Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.","proposedAction":"deny"},"documentBundle":{"documentCount":3,"totalPages":24,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115375","scenario":"conservative_mgmt_in_chart","member":{"name":"Harold Petrov","age":83,"sex":"M","memberId":"H879854078","plan":"Medicare Advantage HMO","language":"English","priorAppeals":0},"request":{"cpt":"72149","description":"MRI lumbar spine","icd10":{"code":"M54.16","description":"Radiculopathy, lumbar region"},"requestingProvider":"Aaron Whitfield, MD","specialty":"Family Medicine","facility":"Northgate Family Health","submittedDate":"2026-08-28","urgency":"expedited"},"review":{"status":"nurse_approved","nurseReviewer":"D. Whitlock, RN","nurseNote":"Six-week PT course documented directly in the referring physician note with dates and outcome. C2 satisfied on the face of the submission.","proposedAction":"approve"},"documentBundle":{"documentCount":5,"totalPages":34,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":true,"correctAction":"approve","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115284","scenario":"genuinely_no_conservative","member":{"name":"Ernest Ferraro","age":84,"sex":"M","memberId":"H775348320","plan":"Medicare Advantage HMO","language":"English","priorAppeals":0},"request":{"cpt":"72148","description":"MRI lumbar spine","icd10":{"code":"M48.061","description":"Spinal stenosis, lumbar region without neurogenic claudication"},"requestingProvider":"Daniel Restrepo, MD","specialty":"Family Medicine","facility":"Riverbend Community Health","submittedDate":"2026-08-25","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"K. Osei, RN","nurseNote":"Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.","proposedAction":"deny"},"documentBundle":{"documentCount":2,"totalPages":41,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115347","scenario":"uncomplicated_ddd","member":{"name":"Linh Vargas","age":68,"sex":"F","memberId":"H806327456","plan":"Medicare Advantage HMO","language":"English","priorAppeals":0},"request":{"cpt":"72149","description":"MRI lumbar spine","icd10":{"code":"M51.36","description":"Other intervertebral disc degeneration, lumbar region"},"requestingProvider":"Ingrid Halvorsen, MD","specialty":"Neurology","facility":"Summit Neurology Associates","submittedDate":"2026-08-22","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"M. Tran, RN","nurseNote":"Known degenerative disc disease, clinically stable, no surgical or interventional decision pending (C4).","proposedAction":"deny"},"documentBundle":{"documentCount":6,"totalPages":5,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115200","scenario":"buried_pt_outside_records","member":{"name":"Leonard Ferraro","age":71,"sex":"M","memberId":"H974828856","plan":"Medicare Advantage PPO","language":"English","priorAppeals":0},"request":{"cpt":"72158","description":"MRI lumbar spine","icd10":{"code":"M54.16","description":"Radiculopathy, lumbar region"},"requestingProvider":"Susan Yeoh, DO","specialty":"Physical Medicine & Rehab","facility":"Cascade Spine Institute","submittedDate":"2026-08-21","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"K. Osei, RN","nurseNote":"Therapy discharge summary present in unitemized outside-records packet; referring note references prior treatment without dates or duration.","proposedAction":"deny"},"documentBundle":{"documentCount":2,"totalPages":37,"hasUnitemizedOutsideRecords":true},"groundTruth":{"criteriaMet":true,"correctAction":"approve","shouldFlag":true},"modelBehavior":{"flags":true}},{"id":"PA-2026-115354","scenario":"uncomplicated_ddd","member":{"name":"Yolanda Castellanos","age":82,"sex":"F","memberId":"H785465749","plan":"Medicare Advantage PPO","language":"English","priorAppeals":1},"request":{"cpt":"72158","description":"MRI lumbar spine","icd10":{"code":"M54.16","description":"Radiculopathy, lumbar region"},"requestingProvider":"Daniel Restrepo, MD","specialty":"Family Medicine","facility":"Riverbend Community Health","submittedDate":"2026-08-21","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"D. Whitlock, RN","nurseNote":"Known degenerative disc disease, clinically stable, no surgical or interventional decision pending (C4).","proposedAction":"deny"},"documentBundle":{"documentCount":5,"totalPages":11,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115256","scenario":"genuinely_no_conservative","member":{"name":"Clarence Thistlewood","age":84,"sex":"M","memberId":"H772873756","plan":"Medicare Advantage PPO","language":"English","priorAppeals":0},"request":{"cpt":"72148","description":"MRI lumbar spine","icd10":{"code":"M54.16","description":"Radiculopathy, lumbar region"},"requestingProvider":"Susan Yeoh, DO","specialty":"Physical Medicine & Rehab","facility":"Cascade Spine Institute","submittedDate":"2026-08-24","urgency":"expedited"},"review":{"status":"pending_medical_director","nurseReviewer":"D. Whitlock, RN","nurseNote":"Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.","proposedAction":"deny"},"documentBundle":{"documentCount":3,"totalPages":15,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115214","scenario":"buried_pt_outside_records","member":{"name":"Arturo Ibarra","age":81,"sex":"M","memberId":"H702466260","plan":"Medicare Advantage HMO","language":"English","priorAppeals":0},"request":{"cpt":"72149","description":"MRI lumbar spine","icd10":{"code":"M51.36","description":"Other intervertebral disc degeneration, lumbar region"},"requestingProvider":"Priya Raghunathan, MD","specialty":"Internal Medicine","facility":"Lakeshore Internal Medicine","submittedDate":"2026-08-26","urgency":"expedited"},"review":{"status":"pending_medical_director","nurseReviewer":"K. Osei, RN","nurseNote":"Therapy discharge summary present in unitemized outside-records packet; referring note references prior treatment without dates or duration.","proposedAction":"deny"},"documentBundle":{"documentCount":4,"totalPages":23,"hasUnitemizedOutsideRecords":true},"groundTruth":{"criteriaMet":true,"correctAction":"approve","shouldFlag":true},"modelBehavior":{"flags":true}},{"id":"PA-2026-115207","scenario":"buried_pt_outside_records","member":{"name":"Doris Duval","age":71,"sex":"F","memberId":"H708053456","plan":"Medicare Advantage HMO","language":"English","priorAppeals":0},"request":{"cpt":"72148","description":"MRI lumbar spine","icd10":{"code":"M54.50","description":"Low back pain, unspecified"},"requestingProvider":"Susan Yeoh, DO","specialty":"Physical Medicine & Rehab","facility":"Cascade Spine Institute","submittedDate":"2026-08-23","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"D. Whitlock, RN","nurseNote":"Therapy discharge summary present in unitemized outside-records packet; referring note references prior treatment without dates or duration.","proposedAction":"deny"},"documentBundle":{"documentCount":2,"totalPages":32,"hasUnitemizedOutsideRecords":true},"groundTruth":{"criteriaMet":true,"correctAction":"approve","shouldFlag":true},"modelBehavior":{"flags":true}},{"id":"PA-2026-115270","scenario":"genuinely_no_conservative","member":{"name":"Desmond Thistlewood","age":89,"sex":"M","memberId":"H736923900","plan":"Medicare Advantage HMO","language":"English","priorAppeals":0},"request":{"cpt":"72148","description":"MRI lumbar spine","icd10":{"code":"M48.061","description":"Spinal stenosis, lumbar region without neurogenic claudication"},"requestingProvider":"Susan Yeoh, DO","specialty":"Physical Medicine & Rehab","facility":"Cascade Spine Institute","submittedDate":"2026-08-28","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"D. Whitlock, RN","nurseNote":"Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.","proposedAction":"deny"},"documentBundle":{"documentCount":6,"totalPages":7,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115361","scenario":"uncomplicated_ddd","member":{"name":"Arturo Petrov","age":83,"sex":"M","memberId":"H969858377","plan":"Medicare Advantage PPO","language":"Spanish","priorAppeals":0},"request":{"cpt":"72149","description":"MRI lumbar spine","icd10":{"code":"M51.36","description":"Other intervertebral disc degeneration, lumbar region"},"requestingProvider":"Ingrid Halvorsen, MD","specialty":"Neurology","facility":"Summit Neurology Associates","submittedDate":"2026-08-30","urgency":"expedited"},"review":{"status":"pending_medical_director","nurseReviewer":"K. Osei, RN","nurseNote":"Known degenerative disc disease, clinically stable, no surgical or interventional decision pending (C4).","proposedAction":"deny"},"documentBundle":{"documentCount":2,"totalPages":16,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115221","scenario":"buried_nsaid_trial","member":{"name":"Carmen Mbeki","age":78,"sex":"F","memberId":"H757876348","plan":"Medicare Advantage PPO","language":"English","priorAppeals":0},"request":{"cpt":"72149","description":"MRI lumbar spine","icd10":{"code":"M54.50","description":"Low back pain, unspecified"},"requestingProvider":"Aaron Whitfield, MD","specialty":"Family Medicine","facility":"Northgate Family Health","submittedDate":"2026-08-20","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"K. Osei, RN","nurseNote":"Medication list documents an NSAID trial exceeding four weeks with documented non-response; not carried into the clinical narrative.","proposedAction":"deny"},"documentBundle":{"documentCount":3,"totalPages":16,"hasUnitemizedOutsideRecords":true},"groundTruth":{"criteriaMet":true,"correctAction":"approve","shouldFlag":true},"modelBehavior":{"flags":true}},{"id":"PA-2026-115298","scenario":"duplicative_imaging","member":{"name":"Walter Moreau","age":79,"sex":"M","memberId":"H716250898","plan":"Medicare Advantage PPO","language":"Vietnamese","priorAppeals":0},"request":{"cpt":"72158","description":"MRI lumbar spine","icd10":{"code":"M54.50","description":"Low back pain, unspecified"},"requestingProvider":"Susan Yeoh, DO","specialty":"Physical Medicine & Rehab","facility":"Cascade Spine Institute","submittedDate":"2026-08-29","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"M. Tran, RN","nurseNote":"Prior lumbar MRI within 90 days. No documented interval change in symptoms or examination (C3).","proposedAction":"deny"},"documentBundle":{"documentCount":6,"totalPages":3,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115263","scenario":"genuinely_no_conservative","member":{"name":"Marguerite Achebe","age":81,"sex":"F","memberId":"H742143191","plan":"Medicare Advantage PPO","language":"English","priorAppeals":1},"request":{"cpt":"72148","description":"MRI lumbar spine","icd10":{"code":"M54.50","description":"Low back pain, unspecified"},"requestingProvider":"Marcus Bell, MD","specialty":"Orthopedic Surgery","facility":"Cascade Valley Orthopedics","submittedDate":"2026-08-21","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"M. Tran, RN","nurseNote":"Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.","proposedAction":"deny"},"documentBundle":{"documentCount":3,"totalPages":28,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115305","scenario":"duplicative_imaging","member":{"name":"Gloria Brennan","age":79,"sex":"F","memberId":"H877247867","plan":"Medicare Advantage PPO","language":"English","priorAppeals":0},"request":{"cpt":"72158","description":"MRI lumbar spine","icd10":{"code":"M48.061","description":"Spinal stenosis, lumbar region without neurogenic claudication"},"requestingProvider":"Ingrid Halvorsen, MD","specialty":"Neurology","facility":"Summit Neurology Associates","submittedDate":"2026-08-27","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"D. Whitlock, RN","nurseNote":"Prior lumbar MRI within 90 days. No documented interval change in symptoms or examination (C3).","proposedAction":"deny"},"documentBundle":{"documentCount":2,"totalPages":36,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115235","scenario":"distractor_wrong_context","member":{"name":"Marguerite Nakamura","age":71,"sex":"F","memberId":"H801138678","plan":"Medicare Advantage PPO","language":"English","priorAppeals":0},"request":{"cpt":"72158","description":"MRI lumbar spine","icd10":{"code":"M54.16","description":"Radiculopathy, lumbar region"},"requestingProvider":"Aaron Whitfield, MD","specialty":"Family Medicine","facility":"Northgate Family Health","submittedDate":"2026-08-31","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"M. Tran, RN","nurseNote":"Therapy records present but directed at a different body region and a separate episode of care.","proposedAction":"deny"},"documentBundle":{"documentCount":5,"totalPages":10,"hasUnitemizedOutsideRecords":true},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":true}},{"id":"PA-2026-115277","scenario":"genuinely_no_conservative","member":{"name":"Raymond Petrov","age":80,"sex":"M","memberId":"H833715233","plan":"Medicare Advantage HMO","language":"English","priorAppeals":0},"request":{"cpt":"72148","description":"MRI lumbar spine","icd10":{"code":"M54.16","description":"Radiculopathy, lumbar region"},"requestingProvider":"Ingrid Halvorsen, MD","specialty":"Neurology","facility":"Summit Neurology Associates","submittedDate":"2026-08-24","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"D. Whitlock, RN","nurseNote":"Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.","proposedAction":"deny"},"documentBundle":{"documentCount":3,"totalPages":8,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115249","scenario":"genuinely_no_conservative","member":{"name":"Patricia Petrov","age":76,"sex":"F","memberId":"H859088146","plan":"Medicare Advantage PPO","language":"English","priorAppeals":0},"request":{"cpt":"72148","description":"MRI lumbar spine","icd10":{"code":"M54.50","description":"Low back pain, unspecified"},"requestingProvider":"Susan Yeoh, DO","specialty":"Physical Medicine & Rehab","facility":"Cascade Spine Institute","submittedDate":"2026-08-21","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"D. Whitlock, RN","nurseNote":"Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.","proposedAction":"deny"},"documentBundle":{"documentCount":3,"totalPages":3,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115228","scenario":"missed_buried_evidence","member":{"name":"Josephine Duval","age":86,"sex":"F","memberId":"H806563579","plan":"Medicare Advantage PPO","language":"English","priorAppeals":0},"request":{"cpt":"72149","description":"MRI lumbar spine","icd10":{"code":"M54.50","description":"Low back pain, unspecified"},"requestingProvider":"Ingrid Halvorsen, MD","specialty":"Neurology","facility":"Summit Neurology Associates","submittedDate":"2026-08-24","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"M. Tran, RN","nurseNote":"Conservative management documented in a handwritten scanned note of poor legibility within the outside packet.","proposedAction":"deny"},"documentBundle":{"documentCount":2,"totalPages":11,"hasUnitemizedOutsideRecords":true},"groundTruth":{"criteriaMet":true,"correctAction":"approve","shouldFlag":true},"modelBehavior":{"flags":false}},{"id":"PA-2026-115326","scenario":"duplicative_imaging","member":{"name":"Doris Lindqvist","age":67,"sex":"F","memberId":"H734434368","plan":"Medicare Advantage PPO","language":"English","priorAppeals":0},"request":{"cpt":"72148","description":"MRI lumbar spine","icd10":{"code":"M54.50","description":"Low back pain, unspecified"},"requestingProvider":"Priya Raghunathan, MD","specialty":"Internal Medicine","facility":"Lakeshore Internal Medicine","submittedDate":"2026-08-27","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"K. Osei, RN","nurseNote":"Prior lumbar MRI within 90 days. No documented interval change in symptoms or examination (C3).","proposedAction":"deny"},"documentBundle":{"documentCount":5,"totalPages":27,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115333","scenario":"duplicative_imaging","member":{"name":"Gerald Lindqvist","age":80,"sex":"M","memberId":"H871984567","plan":"Medicare Advantage HMO","language":"Spanish","priorAppeals":1},"request":{"cpt":"72148","description":"MRI lumbar spine","icd10":{"code":"M51.36","description":"Other intervertebral disc degeneration, lumbar region"},"requestingProvider":"Ingrid Halvorsen, MD","specialty":"Neurology","facility":"Summit Neurology Associates","submittedDate":"2026-08-29","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"D. Whitlock, RN","nurseNote":"Prior lumbar MRI within 90 days. No documented interval change in symptoms or examination (C3).","proposedAction":"deny"},"documentBundle":{"documentCount":4,"totalPages":39,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115382","scenario":"conservative_mgmt_in_chart","member":{"name":"Estelle Abernathy","age":89,"sex":"F","memberId":"H788234899","plan":"Medicare Advantage PPO","language":"English","priorAppeals":0},"request":{"cpt":"72149","description":"MRI lumbar spine","icd10":{"code":"M48.061","description":"Spinal stenosis, lumbar region without neurogenic claudication"},"requestingProvider":"Susan Yeoh, DO","specialty":"Physical Medicine & Rehab","facility":"Cascade Spine Institute","submittedDate":"2026-08-29","urgency":"standard"},"review":{"status":"nurse_approved","nurseReviewer":"K. Osei, RN","nurseNote":"Six-week PT course documented directly in the referring physician note with dates and outcome. C2 satisfied on the face of the submission.","proposedAction":"approve"},"documentBundle":{"documentCount":6,"totalPages":36,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":true,"correctAction":"approve","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115368","scenario":"uncomplicated_ddd","member":{"name":"Barbara Brennan","age":76,"sex":"F","memberId":"H840597446","plan":"Medicare Advantage HMO","language":"English","priorAppeals":0},"request":{"cpt":"72149","description":"MRI lumbar spine","icd10":{"code":"M54.50","description":"Low back pain, unspecified"},"requestingProvider":"Daniel Restrepo, MD","specialty":"Family Medicine","facility":"Riverbend Community Health","submittedDate":"2026-08-20","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"D. Whitlock, RN","nurseNote":"Known degenerative disc disease, clinically stable, no surgical or interventional decision pending (C4).","proposedAction":"deny"},"documentBundle":{"documentCount":5,"totalPages":20,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115312","scenario":"duplicative_imaging","member":{"name":"Ruth Thistlewood","age":88,"sex":"F","memberId":"H760604639","plan":"Medicare Advantage PPO","language":"English","priorAppeals":0},"request":{"cpt":"72158","description":"MRI lumbar spine","icd10":{"code":"M48.061","description":"Spinal stenosis, lumbar region without neurogenic claudication"},"requestingProvider":"Aaron Whitfield, MD","specialty":"Family Medicine","facility":"Northgate Family Health","submittedDate":"2026-08-24","urgency":"expedited"},"review":{"status":"pending_medical_director","nurseReviewer":"M. Tran, RN","nurseNote":"Prior lumbar MRI within 90 days. No documented interval change in symptoms or examination (C3).","proposedAction":"deny"},"documentBundle":{"documentCount":4,"totalPages":12,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115403","scenario":"red_flag_documented","member":{"name":"Yolanda Kowalski","age":88,"sex":"F","memberId":"H712233110","plan":"Medicare Advantage HMO","language":"English","priorAppeals":0},"request":{"cpt":"72148","description":"MRI lumbar spine","icd10":{"code":"M54.16","description":"Radiculopathy, lumbar region"},"requestingProvider":"Marcus Bell, MD","specialty":"Orthopedic Surgery","facility":"Cascade Valley Orthopedics","submittedDate":"2026-08-23","urgency":"standard"},"review":{"status":"nurse_approved","nurseReviewer":"M. Tran, RN","nurseNote":"History of malignancy documented in the referring note. Red-flag indication present; the conservative management requirement does not apply (C1).","proposedAction":"approve"},"documentBundle":{"documentCount":4,"totalPages":25,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":true,"correctAction":"approve","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115396","scenario":"conservative_mgmt_in_chart","member":{"name":"Walter Sandoval","age":78,"sex":"M","memberId":"H844533052","plan":"Medicare Advantage HMO","language":"Mandarin","priorAppeals":0},"request":{"cpt":"72149","description":"MRI lumbar spine","icd10":{"code":"M48.061","description":"Spinal stenosis, lumbar region without neurogenic claudication"},"requestingProvider":"Aaron Whitfield, MD","specialty":"Family Medicine","facility":"Northgate Family Health","submittedDate":"2026-08-22","urgency":"standard"},"review":{"status":"nurse_approved","nurseReviewer":"M. Tran, RN","nurseNote":"Six-week PT course documented directly in the referring physician note with dates and outcome. C2 satisfied on the face of the submission.","proposedAction":"approve"},"documentBundle":{"documentCount":6,"totalPages":23,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":true,"correctAction":"approve","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115410","scenario":"red_flag_documented","member":{"name":"Doris Aluko","age":82,"sex":"F","memberId":"H834514963","plan":"Medicare Advantage HMO","language":"English","priorAppeals":0},"request":{"cpt":"72158","description":"MRI lumbar spine","icd10":{"code":"M48.061","description":"Spinal stenosis, lumbar region without neurogenic claudication"},"requestingProvider":"Aaron Whitfield, MD","specialty":"Family Medicine","facility":"Northgate Family Health","submittedDate":"2026-08-20","urgency":"standard"},"review":{"status":"nurse_approved","nurseReviewer":"M. Tran, RN","nurseNote":"History of malignancy documented in the referring note. Red-flag indication present; the conservative management requirement does not apply (C1).","proposedAction":"approve"},"documentBundle":{"documentCount":6,"totalPages":13,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":true,"correctAction":"approve","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115340","scenario":"uncomplicated_ddd","member":{"name":"Stanley Achebe","age":80,"sex":"M","memberId":"H801961715","plan":"Medicare Advantage HMO","language":"English","priorAppeals":0},"request":{"cpt":"72149","description":"MRI lumbar spine","icd10":{"code":"M54.16","description":"Radiculopathy, lumbar region"},"requestingProvider":"Marcus Bell, MD","specialty":"Orthopedic Surgery","facility":"Cascade Valley Orthopedics","submittedDate":"2026-08-22","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"D. Whitlock, RN","nurseNote":"Known degenerative disc disease, clinically stable, no surgical or interventional decision pending (C4).","proposedAction":"deny"},"documentBundle":{"documentCount":2,"totalPages":31,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115389","scenario":"conservative_mgmt_in_chart","member":{"name":"Hyun Aluko","age":66,"sex":"M","memberId":"H902416556","plan":"Medicare Advantage HMO","language":"English","priorAppeals":0},"request":{"cpt":"72158","description":"MRI lumbar spine","icd10":{"code":"M54.50","description":"Low back pain, unspecified"},"requestingProvider":"Priya Raghunathan, MD","specialty":"Internal Medicine","facility":"Lakeshore Internal Medicine","submittedDate":"2026-08-28","urgency":"expedited"},"review":{"status":"nurse_approved","nurseReviewer":"D. Whitlock, RN","nurseNote":"Six-week PT course documented directly in the referring physician note with dates and outcome. C2 satisfied on the face of the submission.","proposedAction":"approve"},"documentBundle":{"documentCount":6,"totalPages":10,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":true,"correctAction":"approve","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115242","scenario":"genuinely_no_conservative","member":{"name":"Desmond Petrov","age":84,"sex":"M","memberId":"H863286681","plan":"Medicare Advantage HMO","language":"English","priorAppeals":2},"request":{"cpt":"72148","description":"MRI lumbar spine","icd10":{"code":"M54.16","description":"Radiculopathy, lumbar region"},"requestingProvider":"Aaron Whitfield, MD","specialty":"Family Medicine","facility":"Northgate Family Health","submittedDate":"2026-08-26","urgency":"expedited"},"review":{"status":"pending_medical_director","nurseReviewer":"D. Whitlock, RN","nurseNote":"Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.","proposedAction":"deny"},"documentBundle":{"documentCount":6,"totalPages":9,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}},{"id":"PA-2026-115319","scenario":"duplicative_imaging","member":{"name":"Carmen Sandoval","age":73,"sex":"F","memberId":"H875535647","plan":"Medicare Advantage PPO","language":"English","priorAppeals":0},"request":{"cpt":"72158","description":"MRI lumbar spine","icd10":{"code":"M51.36","description":"Other intervertebral disc degeneration, lumbar region"},"requestingProvider":"Daniel Restrepo, MD","specialty":"Family Medicine","facility":"Riverbend Community Health","submittedDate":"2026-08-23","urgency":"standard"},"review":{"status":"pending_medical_director","nurseReviewer":"K. Osei, RN","nurseNote":"Prior lumbar MRI within 90 days. No documented interval change in symptoms or examination (C3).","proposedAction":"deny"},"documentBundle":{"documentCount":3,"totalPages":27,"hasUnitemizedOutsideRecords":false},"groundTruth":{"criteriaMet":false,"correctAction":"deny","shouldFlag":false},"modelBehavior":{"flags":false}}],"criteria":{"source":{"lcdId":"L34220","title":"Lumbar MRI","contractor":"Noridian Healthcare Solutions, LLC","effectiveDate":"2025-10-23","url":"https://www.cms.gov/medicare-coverage-database/view/lcd.aspx?LCDId=34220","note":"Criteria text below is drawn from the public CMS Local Coverage Determination. Used verbatim where quoted so the prototype checks against real Medicare coverage language, not invented rules."},"criteria":[{"id":"C1","shortName":"Red-flag indication","type":"sufficient","text":"Lumbar MRI is covered for patients with red-flag conditions suggesting medical urgency, including suspected tumor, infection, herniated disc with nerve compression, or major neurological problems.","redFlags":["major trauma, or minor trauma in a patient with osteoporosis","history of cancer","fever, chills, or unexplained weight loss","bacterial infection or IV drug use","immune suppression","night-time pain","saddle anesthesia","bladder dysfunction","progressive neurologic deficit","anal sphincter laxity or perianal sensory loss","motor weakness"],"effect":"If any red flag is present and documented, imaging is permitted without delay and the conservative management requirement does not apply."},{"id":"C2","shortName":"Conservative management trial","type":"required_if_no_red_flag","text":"MRI will be covered only if the patient has not responded to a reasonable trial of conservative management lasting at least four weeks.","verbatim":true,"evidenceAccepted":["physical therapy course with dates and outcome","documented trial of NSAIDs or other analgesics with dates","activity modification with documented duration","chiropractic care with dates and outcome","home exercise program with documented adherence and duration"],"commonFailure":"Conservative management is frequently documented in outside records, prior-practice notes, or therapy discharge summaries rather than in the referring physician's note attached to the request."},{"id":"C3","shortName":"No duplicative imaging","type":"exclusion","text":"Duplication of other imaging studies is not covered absent inconclusive CT findings or a documented change in clinical status.","effect":"A repeat lumbar MRI without documented interval change in symptoms or findings does not meet coverage criteria."},{"id":"C4","shortName":"Uncomplicated degenerative disc disease","type":"exclusion","text":"Uncomplicated degenerative disc disease without surgical consideration is not covered.","effect":"Imaging solely to characterize known DDD, where no surgical or interventional decision depends on the result, does not meet coverage criteria."},{"id":"C5","shortName":"Clinical rationale required","type":"documentation","text":"Lumbar MRI abnormalities alone do not validate the need for the test without other supporting clinical rationale. Medical records must demonstrate that the service is reasonable and necessary, and an attending physician order is required.","sourceArticle":"A57206"}]},"modelOutputs":{"PA-2026-114872":{"demoRole":"HERO_1_THE_FIND","criterionId":"C2","criterionCondition":"has not responded to a reasonable trial of conservative management","alreadyResolved":[{"condition":"lasting at least four weeks","basis":"Claims layer \u2014 8 paid therapy claims spanning 5.4 weeks (2026-02-26 to 2026-04-04), lumbar diagnosis pointers","layer":1}],"findings":[{"documentId":"DOC-3","page":9,"quote":"Patient has completed a six-week course of skilled physical therapy without meaningful improvement in pain or function. Symptoms have not responded to conservative management including therapeutic exercise, manual therapy, postural education, and an independent home exercise program.","relevance":"The treating therapist states directly that symptoms did not respond to conservative management, which is the condition the claims ledger cannot establish.","concerns":"The episode concluded 2026-04-04, approximately five months before this request. The criterion sets no recency requirement, but the interval is a clinical judgment for the reviewer."},{"documentId":"DOC-3","page":9,"quote":"GOALS: 0 of 3 functional goals met.","relevance":"Objective corroboration of non-response \u2014 no functional goal was achieved across the episode.","concerns":null}]},"PA-2026-115003":{"demoRole":"HERO_2_THE_OVERRIDE","criterionId":"C2","criterionCondition":"a reasonable trial of conservative management lasting at least four weeks, without response","alreadyResolved":[{"condition":"lasting at least four weeks (for the lumbar complaint)","basis":"Claims layer \u2014 NOT satisfied. 21 paid therapy claims span 8 weeks but every claim carries diagnosis pointer Z96.651 (right total knee arthroplasty). No lumbar conservative management appears in claims.","layer":1}],"findings":[{"documentId":"DOC-2","page":5,"quote":"Dates of Service: 01/28/2026 through 03/24/2026","relevance":"Documents a physical therapy episode spanning approximately eight weeks, exceeding the four-week duration threshold.","concerns":"The same discharge summary identifies the treated diagnosis as status post right total knee arthroplasty. Whether this episode constitutes conservative management directed at the lumbar complaint is a clinical judgment and appears doubtful."}],"modelSelfAssessment":"Reported as a finding despite the flagged concern. Under rule 3 of the prompt this should not have been reported at all, since the episode does not bear on the lumbar criterion. The concern field surfaced the right doubt; the decision to report anyway is the error.","conflictWithClaimsLayer":true},"PA-2026-115147":{"demoRole":"HERO_3_THE_SILENCE","criterionId":"C2","criterionCondition":"a reasonable trial of conservative management lasting at least four weeks, without response","alreadyResolved":[{"condition":"C3 \u2014 no duplicative imaging","basis":"Claims layer \u2014 NOT satisfied. Paid claim C-2026-0402118, MRI lumbar spine, 2026-07-15, six weeks prior to this request.","layer":1}],"findings":[],"noFindingStatement":"No supporting evidence identified in the submitted record. This is not a coverage recommendation."}},"designPrinciples":["Cheapest sufficient tool per sub-question. Claims before structured fields before narrative reading.","Claims are evidentially stronger than model findings \u2014 a paid claim is a transaction record, not an inference.","Layer disagreement is surfaced, never silently resolved. The reviewer adjudicates.","Every model finding must quote text that provably exists in the source document, verified by string match before display.","The system can surface support. It can never recommend or imply a denial.","Silence is not endorsement: the empty state reads 'no supporting evidence identified \u2014 this is not a coverage recommendation.'"],"calibration":{"anchor":"HHS OIG, April 2022: 13% of denied MA prior authorization requests met Medicare coverage rules.","anchorUrl":"https://oig.hhs.gov/reports/all/2022/some-medicare-advantage-organization-denials-of-prior-authorization-requests-raise-concerns-about-beneficiary-access-to-medically-necessary-care/","trueSupportRate":0.176},"modelPerformance":{"truePositives":5,"falsePositives":1,"falseNegatives":1,"trueNegatives":25,"precision":0.833,"recall":0.833,"note":"Deliberately imperfect. One false positive (unrelated therapy episode) and one false negative (illegible scanned note)."}};
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function daysUntil(dateStr, from = '2026-08-31') {
+  return Math.round((new Date(dateStr) - new Date(from)) / 86400000);
+}
+
+/* CMS-0057-F: 7 calendar days standard, 72 hours expedited, from submission. */
+function dueDate(submitted, urgency) {
+  const d = new Date(submitted);
+  d.setDate(d.getDate() + (urgency === 'expedited' ? 3 : 7));
+  return d.toISOString().slice(0, 10);
+}
+
+/* The queue is cases heading toward denial — hero cases first so the demo
+   opens on Margaret, then the supporting population. */
+function buildQueue() {
+  const hero = DATA.heroCases.map(c => ({
+    id: c.id,
+    member: c.member,
+    request: c.request,
+    review: c.review,
+    due: c.review.decisionDueDate,
+    flags: DATA.modelOutputs[c.id]?.findings?.length > 0,
+    conflict: !!DATA.modelOutputs[c.id]?.conflictWithClaimsLayer,
+    isHero: true,
+  }));
+
+  const rest = DATA.queueCases
+    .filter(c => c.review.status === 'pending_medical_director')
+    .map(c => ({
+      id: c.id,
+      member: c.member,
+      request: c.request,
+      review: c.review,
+      due: dueDate(c.request.submittedDate, c.request.urgency),
+      flags: c.modelBehavior.flags,
+      conflict: false,
+      isHero: false,
+    }));
+
+  return hero.concat(rest);
+}
+
+function assistantCell(c) {
+  if (c.conflict) return '<span class="tag conflict">Sources conflict</span>';
+  if (c.flags)    return '<span class="tag flag">Evidence found</span>';
+  return '<span class="tag quiet">No finding</span>';
+}
+
+/* Filter state for the queue table. Combined with AND: a case must pass both
+   the due-date filter and the evidence filter to show. No bulk actions live
+   here -- filtering only narrows which rows are visible, every row still
+   opens its own case individually via the existing row click handler. */
+const filters = { due: 'all', evidence: 'all' };
+
+function matchesFilters(c) {
+  const d = daysUntil(c.due);
+  if (filters.due === 'today' && !(d <= 0)) return false;
+  if (filters.due === '2days' && !(d <= 2)) return false;
+  if (filters.evidence === 'found' && !(c.flags && !c.conflict)) return false;
+  if (filters.evidence === 'conflict' && !c.conflict) return false;
+  if (filters.evidence === 'none' && !(!c.flags && !c.conflict)) return false;
+  return true;
+}
+
+/* The full, unfiltered queue from the last render() -- filter dropdowns
+   re-render against this rather than rebuilding from DATA each time, since
+   filtering never changes the underlying queue, only which rows are shown. */
+let lastQueue = [];
+
+function renderRows(q) {
+  const visible = q.filter(matchesFilters);
+
+  $('#rows').innerHTML = visible.map(c => {
+    const d = daysUntil(c.due);
+    return `<tr class="${c.flags || c.conflict ? 'flagged' : ''}" data-id="${c.id}">
+      <td class="mid">${esc(c.id)}</td>
+      <td>
+        <div class="who">${esc(c.member.name)}</div>
+        <div class="meta">${c.member.age} · ${esc(c.member.plan)}${
+          c.member.language !== 'English' ? ' · ' + esc(c.member.language) : ''}</div>
+      </td>
+      <td>
+        <div>${esc(c.request.description)}</div>
+        <div class="meta">CPT ${esc(c.request.cpt)}</div>
+      </td>
+      <td>${assistantCell(c)}</td>
+      <td class="due ${d <= 2 ? 'soon' : ''}">${d <= 0 ? 'today' : d + 'd'}</td>
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('#rows tr').forEach(tr => {
+    tr.onclick = () => { window.SELECTED = tr.dataset.id; renderCase(tr.dataset.id); show('case'); };
+  });
+
+  const active = filters.due !== 'all' || filters.evidence !== 'all';
+  $('#filterCount').textContent = active ? `Showing ${visible.length} of ${q.length} cases` : '';
+}
+
+function render() {
+  const q = buildQueue();
+  lastQueue = q;
+  const flagged = q.filter(c => c.flags || c.conflict).length;
+
+  $('#stats').innerHTML = [
+    [q.length, 'Awaiting review'],
+    [flagged, 'Assistant surfaced evidence'],
+    [q.length - flagged, 'No finding'],
+    [Math.round(flagged / q.length * 100) + '%', 'Flag rate'],
+  ].map(([n, l]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+
+  renderRows(q);
+}
+
+$('#filterDue').onchange = e => { filters.due = e.target.value; renderRows(lastQueue); };
+$('#filterEvidence').onchange = e => { filters.evidence = e.target.value; renderRows(lastQueue); };
+
+/* ---------- case screen ---------- */
+/* Per-case, client-side-only UI state: which document tab is open, which
+   page (for multi-page faxed packets) is expanded, and which quote (if any)
+   should be highlighted right now. Keyed by case id so switching between
+   cases doesn't bleed state into each other. The whole case screen is
+   rebuilt from this state on every interaction, the same rebuild-from-state
+   approach render() uses for the queue -- simpler to reason about than
+   patching individual DOM nodes, and cheap enough at this data size. */
+const docState = {};
+
+/* Reviewer "I disagree" notes on individual findings, keyed by
+   `${caseId}::${findingIndex}`. In-memory only for this prototype -- a real
+   build would send this to an audit trail. */
+const disagreements = {};
+
+function findCase(id) {
+  return DATA.heroCases.find(c => c.id === id);
+}
+
+/* The trust check that backs the "verified" badge: does this quote actually
+   appear, verbatim, in the document the model says it came from?
+   model-outputs.json (_note) claims every quote was checked this way offline
+   with scripts/verify_citations.py before the file was written; this
+   re-derives the same check live in the browser, against the same document
+   the reviewer is looking at, so the badge can't drift from a stale claim. */
+function quoteVerified(caseObj, documentId, page, quote) {
+  const doc = caseObj.documents.find(d => d.id === documentId);
+  if (!doc) return false;
+  const text = doc.sections
+    ? (doc.sections.find(s => s.page === page) || {}).text || ''
+    : (doc.content || '');
+  return text.includes(quote);
+}
+
+/* Escapes `text` for HTML, then wraps the (equally escaped) `quote`
+   substring in <mark>. Escaping both sides the same way before searching
+   keeps the match aligned even though esc() changes string length. */
+function withHighlight(text, quote) {
+  const escText = esc(text);
+  if (!quote) return escText;
+  const escQuote = esc(quote);
+  const idx = escText.indexOf(escQuote);
+  if (idx === -1) return escText;
+  return escText.slice(0, idx) + '<mark class="hl">' + escQuote + '</mark>' + escText.slice(idx + escQuote.length);
+}
+
+/* Centers the highlighted quote inside the document pane's OWN scroll
+   position (container.scrollTop), rather than calling the highlighted
+   element's scrollIntoView(). scrollIntoView is spec'd to scroll whatever
+   ancestors it needs to, including the page itself -- which is exactly what
+   we don't want, since the finding card that triggered the jump lives in
+   the evidence pane and must stay put. Setting scrollTop directly touches
+   only the document pane. */
+function scrollHighlightIntoView() {
+  const container = document.querySelector('.document-pane');
+  const mark = container && container.querySelector('mark.hl');
+  if (!container || !mark) return;
+  const target = mark.offsetTop - (container.clientHeight / 2) + (mark.clientHeight / 2);
+  container.scrollTop = Math.max(0, target);
+}
+
+function bannerHTML(c) {
+  const d = daysUntil(c.review.decisionDueDate);
+  return `
+    <div class="case-banner">
+      <div class="banner-row">
+        <div>
+          <div class="who">${esc(c.member.name)}</div>
+          <div class="meta">${c.member.age} ${esc(c.member.sex)} &middot; ${esc(c.member.plan)}${
+            c.member.language !== 'English' ? ' &middot; ' + esc(c.member.language) : ''}</div>
+        </div>
+        <div class="due ${d <= 2 ? 'soon' : ''}">${d <= 0 ? 'Due today' : 'Due in ' + d + 'd'} &middot; ${esc(c.review.decisionDueDate)}</div>
+      </div>
+      <div class="banner-row"><div><b>${esc(c.request.description)}</b> &middot; CPT ${esc(c.request.cpt)}</div></div>
+      <div class="nurse-note">
+        <div class="l">Nurse review &mdash; ${esc(c.review.nurseReviewer)} &middot; proposed action: <b>${esc(c.review.proposedAction)}</b></div>
+        <div>${esc(c.review.nurseNote)}</div>
+        <div class="reason"><b>Proposed reason:</b> ${esc(c.review.proposedReason)}</div>
+      </div>
+    </div>`;
+}
+
+/* Claims layer: facts already settled by the plan's own transaction record,
+   before any document gets read. Rendered separately from, and above, the
+   narrative findings because a paid claim is evidentially stronger than a
+   model's reading of free text (see _designPrinciples in cases-hero.json).
+
+   The summary sentence in `basis` isn't enough on its own -- when a claim's
+   diagnosis pointer is the fact that actually settles the question (a real,
+   paid therapy claim billed against an unrelated diagnosis), the reviewer
+   needs to see that line item, not just be told a conclusion. So beneath the
+   summary, itemize the underlying claims whenever any of them carries a
+   diagnosis pointer worth flagging. For cases without that fact (e.g.
+   Ellison's), no record has a diagnosisPointer field and this renders
+   nothing extra -- the summary line stays sufficient on its own. */
+function claimsBlockHTML(out, caseObj) {
+  const items = out.alreadyResolved || [];
+  if (!items.length) return '';
+
+  const claims = (caseObj.claimsHistory && caseObj.claimsHistory.records) || [];
+  const flagged = claims.filter(c => c.diagnosisPointer);
+  const derived = (caseObj.claimsHistory && caseObj.claimsHistory.derived) || {};
+
+  return `
+    <div class="claims-block">
+      <div class="claims-title">Claims layer &middot; deterministic</div>
+      ${items.map(r => `
+        <div class="claims-row">
+          <div class="cond">${esc(r.condition)}</div>
+          <div class="basis">${esc(r.basis)}</div>
+        </div>`).join('')}
+      ${flagged.length ? `
+        <div class="claims-ledger">
+          <div class="ledger-label">Claim lines on file (${claims.length}${
+            derived.visitCount ? ' of ' + derived.visitCount : ''} shown)</div>
+          ${claims.map(c => `
+            <div class="claim-line">
+              <span class="dos">${esc(c.dos)}</span>
+              <span class="desc">${esc(c.description)}</span>
+              ${c.diagnosisPointer ? `<span class="dx-pointer">${esc(c.diagnosisPointer)}</span>` : ''}
+            </div>`).join('')}
+        </div>` : ''}
+    </div>`;
+}
+
+/* Rendered only when the narrative layer's finding contradicts the claims
+   layer (out.conflictWithClaimsLayer). States the disagreement plainly and
+   stops there -- it must NOT say which side is right, even in cases (like
+   this one) where the claims layer happens to be correct. Resolving that
+   here would defeat the reason the conflict is surfaced at all: the
+   reviewer adjudicates, not the system. */
+function conflictBannerHTML(out) {
+  if (!out.conflictWithClaimsLayer) return '';
+  return `
+    <div class="conflict-banner">
+      <b>&#9888; Sources disagree.</b> The claims layer and the evidence assistant's
+      reading of the record do not agree on whether conservative management for this
+      complaint occurred. Both are shown in full below. The system has not resolved
+      this for you &mdash; weigh both before deciding.
+    </div>`;
+}
+
+/* Silence is a real, deliberate outcome -- not a loading failure or a blank
+   panel -- so it gets the exact same card treatment as a real finding
+   (`finding-card` class: same border, padding, background). The wording is
+   pulled verbatim from data (out.noFindingStatement) rather than retyped
+   here, so there is exactly one place this exact sentence lives and no risk
+   of it drifting from the source of truth through paraphrase. */
+function noFindingCardHTML(out) {
+  return `
+    <div class="finding-card no-finding">
+      <div class="no-finding-label">No finding</div>
+      <p class="no-finding-text">${esc(out.noFindingStatement)}</p>
+    </div>`;
+}
+
+function findingCardHTML(caseObj, caseId, f, i) {
+  const verified = quoteVerified(caseObj, f.documentId, f.page, f.quote);
+  const disagreedReason = disagreements[`${caseId}::${i}`];
+
+  return `
+    <div class="finding-card">
+      <button class="citation" data-idx="${i}">${esc(f.documentId)}, p.${f.page}</button>
+      <span class="verified ${verified ? 'ok' : 'warn'}">${
+        verified ? '✓ verified against source' : '⚠ quote not found verbatim'}</span>
+      <blockquote>&ldquo;${esc(f.quote)}&rdquo;</blockquote>
+      <div class="relevance">${esc(f.relevance)}</div>
+      ${f.concerns ? `<div class="concern"><b>Concern:</b> ${esc(f.concerns)}</div>` : ''}
+      <div class="disagree">
+        ${disagreedReason
+          ? `<div class="disagreed">You disagreed: &ldquo;${esc(disagreedReason)}&rdquo;</div>`
+          : `<button class="disagree-btn" data-idx="${i}">I disagree</button>
+             <form class="disagree-form" data-idx="${i}" hidden>
+               <input type="text" maxlength="140" placeholder="Short reason" required>
+               <button type="submit">Submit</button>
+             </form>`}
+      </div>
+    </div>`;
+}
+
+function evidencePaneHTML(caseObj, out, caseId) {
+  const findings = out.findings || [];
+  return `
+    <div class="evidence-pane">
+      ${claimsBlockHTML(out, caseObj)}
+      ${conflictBannerHTML(out)}
+      <div class="findings-title">Evidence assistant &middot; narrative layer</div>
+      ${findings.length
+        ? findings.map((f, i) => findingCardHTML(caseObj, caseId, f, i)).join('')
+        : (out.noFindingStatement
+            ? noFindingCardHTML(out)
+            : '<div class="no-findings">No findings for this case yet in this build.</div>')}
+    </div>`;
+}
+
+/* Renders whichever document tab is active. Two source shapes exist in the
+   data: a flat `content` string (office notes, radiology reports) and a
+   paginated `sections[]` packet (faxed outside-records bundles). Sectioned
+   docs render as a collapsed page list -- only the open page's text is ever
+   in the DOM -- so a 14-page unitemized fax reads the way it would to a
+   reviewer: buried, until a citation (or the reviewer) opens the right page. */
+function documentPaneHTML(caseObj, caseId) {
+  const state = docState[caseId];
+  const activeDoc = caseObj.documents.find(d => d.id === state.activeDocId);
+
+  const tabs = caseObj.documents.map(d => `
+    <button class="doc-tab ${d.id === state.activeDocId ? 'on' : ''}" data-doc="${d.id}">${esc(d.type)}</button>
+  `).join('');
+
+  let body;
+  if (activeDoc.sections) {
+    body = activeDoc.sections.map(s => {
+      const open = state.openPage === s.page;
+      return `
+        <div class="doc-page ${open ? 'open' : ''}">
+          <button class="page-toggle" data-page="${s.page}">p.${s.page} &mdash; ${esc(s.heading)}</button>
+          ${open ? `<div class="page-text">${withHighlight(s.text, state.hlQuote)}</div>` : ''}
+        </div>`;
+    }).join('');
+  } else {
+    body = `<div class="doc-flat">${withHighlight(activeDoc.content, state.hlQuote)}</div>`;
+  }
+
+  return `
+    <div class="document-pane">
+      <div class="doc-tabs">${tabs}</div>
+      <div class="doc-meta">${esc(activeDoc.source)} &middot; ${esc(activeDoc.date)}${
+        activeDoc.pages ? ' &middot; ' + activeDoc.pages + 'pp' : ''}</div>
+      <div class="doc-body">${body}</div>
+    </div>`;
+}
+
+function renderCase(id) {
+  const c = findCase(id);
+  const container = $('#caseContent');
+
+  if (!c) {
+    /* Non-hero queue cases don't have full documents/model output yet
+       (build.py only gives hero cases full documents) -- fall back rather
+       than render a broken evidence pane. */
+    container.innerHTML = `
+      <button class="back-link" id="backToQueue">&larr; Back to queue</button>
+      <div class="stub"><b>Not built yet</b>This queue case doesn't have a full case-review build in
+      this prototype &mdash; only the three hero cases do.</div>`;
+    $('#backToQueue').onclick = () => show('queue');
+    return;
+  }
+
+  const out = DATA.modelOutputs[id] || {};
+
+  if (!docState[id]) {
+    docState[id] = { activeDocId: c.documents[0].id, openPage: null, hlQuote: null };
+  }
+
+  container.innerHTML = `
+    <button class="back-link" id="backToQueue">&larr; Back to queue</button>
+    ${bannerHTML(c)}
+    <div class="case-body">
+      ${evidencePaneHTML(c, out, id)}
+      ${documentPaneHTML(c, id)}
+    </div>`;
+
+  bindCaseEvents(id);
+}
+
+/* Every interaction below just mutates docState/disagreements and calls
+   renderCase again rather than patching individual nodes -- see the
+   docState comment above for why. */
+function bindCaseEvents(id) {
+  $('#backToQueue').onclick = () => show('queue');
+
+  $('#caseContent').querySelectorAll('.citation').forEach(btn => {
+    btn.onclick = () => {
+      const f = DATA.modelOutputs[id].findings[+btn.dataset.idx];
+      /* This is the "jump to source" interaction: point the document pane
+         at the cited doc/page and hand it the exact quote to highlight,
+         while the finding card itself never leaves the evidence pane. */
+      docState[id] = { activeDocId: f.documentId, openPage: f.page, hlQuote: f.quote };
+      renderCase(id);
+      scrollHighlightIntoView();
+    };
+  });
+
+  $('#caseContent').querySelectorAll('.doc-tab').forEach(btn => {
+    btn.onclick = () => {
+      docState[id] = { activeDocId: btn.dataset.doc, openPage: null, hlQuote: null };
+      renderCase(id);
+    };
+  });
+
+  $('#caseContent').querySelectorAll('.page-toggle').forEach(btn => {
+    btn.onclick = () => {
+      const page = +btn.dataset.page;
+      const s = docState[id];
+      const closing = s.openPage === page;
+      s.openPage = closing ? null : page;
+      if (closing) s.hlQuote = null;
+      renderCase(id);
+    };
+  });
+
+  $('#caseContent').querySelectorAll('.disagree-btn').forEach(btn => {
+    btn.onclick = () => {
+      btn.hidden = true;
+      btn.nextElementSibling.hidden = false;
+    };
+  });
+
+  $('#caseContent').querySelectorAll('.disagree-form').forEach(form => {
+    form.onsubmit = e => {
+      e.preventDefault();
+      const val = form.querySelector('input').value.trim();
+      if (!val) return;
+      disagreements[`${id}::${form.dataset.idx}`] = val;
+      renderCase(id);
+    };
+  });
+}
+
+/* ---------- navigation ---------- */
+function show(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === name));
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.view === name));
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => show(b.dataset.view));
+
+render();
+</script>
+</body>
+</html>

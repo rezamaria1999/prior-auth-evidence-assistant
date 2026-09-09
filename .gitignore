@@ -1,0 +1,17 @@
+# Personal presentation prep — NOT for publication.
+# These are speaking notes, adversarial self-critique, and anticipated-question
+# preparation. They are for the presenter only.
+deliverables/06-presentation-outline.md
+deliverables/06-run-sheet.md
+deliverables/07-script.md
+deliverables/qa-prep.md
+deliverables/self-review.md
+
+# Working scaffolding
+Claude outputs/
+_bundle.tar.gz
+
+# OS / Python
+.DS_Store
+__pycache__/
+*.pyc

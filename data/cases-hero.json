@@ -1,0 +1,553 @@
+{
+  "_note": "Synthetic data. No real members, providers, or facilities. Clinical documents are written to mirror the structure and messiness of real prior-authorization packets: multiple sources, inconsistent formatting, relevant facts buried in outside records. CPT and ICD-10 codes are real. Criteria references map to data/criteria.json (CMS LCD L34220).",
+  "cases": [
+    {
+      "id": "PA-2026-114872",
+      "demoRole": "HERO_1_THE_FIND",
+      "member": {
+        "name": "Margaret Ellison",
+        "age": 72,
+        "sex": "F",
+        "memberId": "H884201736",
+        "plan": "Medicare Advantage HMO",
+        "enrolledSince": "2019-01-01",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine without contrast",
+        "icd10": [
+          {
+            "code": "M54.50",
+            "description": "Low back pain, unspecified"
+          },
+          {
+            "code": "M51.36",
+            "description": "Other intervertebral disc degeneration, lumbar region"
+          }
+        ],
+        "requestingProvider": "Aaron Whitfield, MD",
+        "specialty": "Family Medicine",
+        "facility": "Northgate Family Health",
+        "submittedDate": "2026-08-26",
+        "urgency": "standard",
+        "submissionMethod": "provider portal with faxed attachments"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "K. Osei, RN",
+        "nurseRoutedDate": "2026-08-28",
+        "nurseNote": "Unable to locate documentation of conservative management \u22654 weeks per L34220. Referring note references chronic symptoms but does not state treatment dates or duration. No red-flag indicators identified on review of the referring note. Outside records packet received (14 pp) \u2014 not itemized. Routing for medical director determination.",
+        "proposedAction": "deny",
+        "proposedReason": "Insufficient documentation of a four-week trial of conservative management (LCD L34220, criterion C2).",
+        "clockStartDate": "2026-08-26",
+        "decisionDueDate": "2026-09-02"
+      },
+      "documents": [
+        {
+          "id": "DOC-1",
+          "type": "Prior Authorization Request Form",
+          "source": "Northgate Family Health",
+          "date": "2026-08-26",
+          "pages": 1,
+          "content": "PRIOR AUTHORIZATION REQUEST\n\nMember: ELLISON, MARGARET   ID: H884201736   DOB: [redacted]\nRequesting Provider: Aaron Whitfield, MD   NPI: [synthetic]\nFacility: Northgate Family Health\n\nRequested Service: MRI LUMBAR SPINE WITHOUT CONTRAST (72148)\nDiagnosis: M54.50 Low back pain, unspecified; M51.36 Other intervertebral disc degeneration, lumbar region\nPlace of Service: Outpatient imaging\nUrgency: Standard\n\nClinical Justification (free text): Persistent low back pain with radiation to left lower extremity. Has failed conservative treatment. Requesting MRI to evaluate for disc herniation and nerve root involvement prior to referral to spine surgery.\n\nAttachments: office note 08/12/2026; outside records; medication list; lumbar radiograph report."
+        },
+        {
+          "id": "DOC-2",
+          "type": "Office Note",
+          "source": "Northgate Family Health \u2014 A. Whitfield, MD",
+          "date": "2026-08-12",
+          "pages": 2,
+          "content": "NORTHGATE FAMILY HEALTH\nOffice Visit Note \u2014 08/12/2026\nPatient: Margaret Ellison, 72 y/o female\n\nCHIEF COMPLAINT: Ongoing low back pain.\n\nHISTORY OF PRESENT ILLNESS:\nMs. Ellison returns for follow-up of chronic low back pain. She reports the pain has been present for approximately eight months and has not meaningfully improved. Pain is described as aching and constant across the lower lumbar region with intermittent radiation down the posterior left thigh to just below the knee. She notes the leg symptoms have become more frequent over the past six weeks. Denies bowel or bladder changes. Denies fever, chills, night sweats, or unintentional weight loss. No history of malignancy. No recent trauma.\n\nShe reports she has tried therapy in the past without much benefit and states she has been taking an anti-inflammatory. She describes difficulty with prolonged standing and reports she has stopped attending her weekly community exercise class because of the pain.\n\nPAST MEDICAL HISTORY: Hypertension. Osteoarthritis. Hyperlipidemia. Type 2 diabetes mellitus, diet-controlled.\n\nPHYSICAL EXAMINATION:\nVitals: BP 138/78, HR 74, T 98.2F, BMI 29.4\nGeneral: Well-appearing, no acute distress. Ambulates without assistive device.\nBack: Tenderness to palpation over the L4-L5 paraspinal musculature bilaterally, left greater than right. Lumbar flexion limited to approximately 45 degrees, limited by pain. Extension limited and reproduces left-sided symptoms.\nNeuro: Strength 5/5 throughout bilateral lower extremities. Sensation intact to light touch. Deep tendon reflexes 2+ and symmetric at patella; 1+ at Achilles bilaterally. Straight leg raise positive on the left at approximately 50 degrees. Negative on the right.\nGait: Normal. Heel and toe walk intact.\n\nASSESSMENT:\n1. Chronic low back pain with left lower extremity radicular features, progressive.\n2. Known lumbar degenerative disc disease per prior radiograph.\n\nPLAN:\nGiven persistence of symptoms despite prior treatment and the progressive radicular component, will obtain MRI of the lumbar spine to evaluate for disc herniation with nerve root compression. Records requested from Cascade Valley and received \u2014 forwarded with this request. Continue current medication. Will refer to spine surgery pending imaging results. Patient verbalizes understanding.\n\nA. Whitfield, MD"
+        },
+        {
+          "id": "DOC-3",
+          "type": "Outside Records Packet",
+          "source": "Cascade Valley Orthopedics & Rehabilitation",
+          "date": "2026-08-08",
+          "pages": 14,
+          "note": "Received by fax. Not itemized by intake. Contains intake paperwork, insurance forms, multiple therapy session notes, and a discharge summary.",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "Fax Cover Sheet",
+              "text": "CASCADE VALLEY ORTHOPEDICS & REHABILITATION\nFAX TRANSMITTAL\nTo: Northgate Family Health, Attn: Records\nFrom: Medical Records\nDate: 08/08/2026\nPages including cover: 14\nRe: ELLISON, MARGARET\nComments: Records released per signed authorization. Please direct questions to the records department."
+            },
+            {
+              "page": 2,
+              "heading": "Patient Registration and Consent",
+              "text": "Patient registration form. Demographics, emergency contact, insurance information, financial responsibility acknowledgment, HIPAA notice of privacy practices acknowledgment, consent to treat. Signed 02/24/2026."
+            },
+            {
+              "page": 3,
+              "heading": "Referral",
+              "text": "Referral received from Northgate Family Health dated 02/18/2026. Reason for referral: low back pain, evaluate and treat. Frequency requested: 2x/week for 6 weeks. Precautions: none noted."
+            },
+            {
+              "page": 4,
+              "heading": "Physical Therapy Initial Evaluation \u2014 02/24/2026",
+              "text": "PHYSICAL THERAPY INITIAL EVALUATION\nDate: 02/24/2026\nPatient: Ellison, Margaret   Age: 72\nReferring: A. Whitfield, MD\nDiagnosis: Low back pain (M54.50)\n\nSUBJECTIVE: Patient reports low back pain present approximately 3 months, worse with prolonged standing and rising from seated position. Rates pain 6/10 at worst, 3/10 at best. Reports occasional discomfort into the left buttock. Denies numbness or weakness. Goals: reduce pain, return to community exercise class, walk her dog without stopping.\n\nOBJECTIVE: Lumbar AROM: flexion 50 deg, extension 15 deg with pain. Tenderness L4-S1 paraspinals. Strength grossly 5/5 bilateral LE. Negative SLR bilaterally this date. Ambulates independently.\n\nASSESSMENT: Patient presents with mechanical low back pain with functional limitations in standing tolerance and ambulation. Good rehabilitation potential.\n\nPLAN: Skilled PT 2x/week for 6 weeks. Lumbar stabilization, hip and core strengthening, postural education, home exercise program.\n\nJ. Amara, PT, DPT"
+            },
+            {
+              "page": 5,
+              "heading": "Therapy Session Notes 1-4",
+              "text": "02/26/2026 \u2014 Visit 1. Lumbar stabilization introduced. Tolerated well. Pain 5/10 post-session.\n03/03/2026 \u2014 Visit 2. Progressed core program. Reports minimal change in symptoms. Pain 6/10.\n03/05/2026 \u2014 Visit 3. Added hip abductor strengthening. Patient reports soreness following prior session. Pain 6/10.\n03/10/2026 \u2014 Visit 4. Continued program. Patient reports no appreciable change in baseline pain. Discussed expectations regarding timeline."
+            },
+            {
+              "page": 6,
+              "heading": "Therapy Session Notes 5-8",
+              "text": "03/17/2026 \u2014 Visit 5. HEP reviewed and updated. Patient adherent per report. Pain 6/10.\n03/24/2026 \u2014 Visit 6. Manual therapy added. Transient relief reported during session, symptoms returned same day.\n03/31/2026 \u2014 Visit 7. Patient reports increased left buttock discomfort with extension-based activity. Modified program accordingly.\n04/04/2026 \u2014 Visit 8. Final scheduled visit. Reassessment performed, see discharge summary."
+            },
+            {
+              "page": 7,
+              "heading": "Insurance Correspondence",
+              "text": "Explanation of benefits correspondence and authorization tracking for the therapy episode. Administrative content only."
+            },
+            {
+              "page": 8,
+              "heading": "Home Exercise Program Handout",
+              "text": "Printed patient handout: pelvic tilt, bridging, quadruped alternating arm/leg, seated hamstring stretch, standing hip abduction. Instructions to perform daily. Adherence log attached, partially completed by patient."
+            },
+            {
+              "page": 9,
+              "heading": "Physical Therapy Discharge Summary \u2014 04/04/2026",
+              "isKeyEvidence": true,
+              "text": "PHYSICAL THERAPY DISCHARGE SUMMARY\nDate of Discharge: 04/04/2026\nPatient: Ellison, Margaret\nDates of Service: 02/24/2026 through 04/04/2026\nTotal Visits Attended: 8 of 12 scheduled (4 cancellations, patient report of transportation difficulty)\nDuration of Episode: 6 weeks\n\nSUBJECTIVE AT DISCHARGE: Patient reports her low back pain is essentially unchanged from initial evaluation. Rates pain 6/10 at worst. Reports the left buttock and posterior thigh discomfort has become somewhat more frequent over the course of the episode. States she has been performing her home exercise program most days.\n\nOBJECTIVE AT DISCHARGE: Lumbar flexion 50 deg (unchanged from initial). Extension 15 deg with reproduction of left-sided symptoms. Strength remains 5/5 bilateral LE. Standing tolerance unchanged at approximately 10 minutes.\n\nGOALS: 0 of 3 functional goals met.\n\nASSESSMENT: Patient has completed a six-week course of skilled physical therapy without meaningful improvement in pain or function. Symptoms have not responded to conservative management including therapeutic exercise, manual therapy, postural education, and an independent home exercise program. The emergence of more frequent radicular-pattern symptoms during the episode is noted.\n\nRECOMMENDATION: Discharge from skilled physical therapy. Return to referring physician for further evaluation. Recommend physician consider additional workup given lack of response to conservative care and progressive radicular features.\n\nJ. Amara, PT, DPT"
+            },
+            {
+              "page": 10,
+              "heading": "Attendance Record",
+              "text": "Visit attendance grid for the episode of care, 02/24/2026 - 04/04/2026. Eight attended, four cancelled."
+            },
+            {
+              "page": 11,
+              "heading": "Outcome Measure Forms",
+              "text": "Oswestry Disability Index completed at initial evaluation (score 38%) and at discharge (score 36%). Minimal clinically important difference not achieved."
+            },
+            {
+              "page": 12,
+              "heading": "Prior Clinic Correspondence",
+              "text": "Letter to referring physician acknowledging referral, dated 02/20/2026."
+            },
+            {
+              "page": 13,
+              "heading": "Billing Summary",
+              "text": "Itemized charges for the therapy episode. Administrative content only."
+            },
+            {
+              "page": 14,
+              "heading": "Records Release Authorization",
+              "text": "Signed authorization for release of records to Northgate Family Health, dated 08/06/2026."
+            }
+          ]
+        },
+        {
+          "id": "DOC-4",
+          "type": "Medication List",
+          "source": "Northgate Family Health",
+          "date": "2026-08-12",
+          "pages": 1,
+          "content": "ACTIVE MEDICATIONS \u2014 as of 08/12/2026\n\nlisinopril 20 mg daily \u2014 start 2018-04-11\natorvastatin 40 mg nightly \u2014 start 2020-09-02\nmeloxicam 15 mg daily \u2014 start 2026-03-02 \u2014 indication: low back pain \u2014 continued\nacetaminophen 650 mg PRN \u2014 start 2026-02-20 \u2014 indication: low back pain\nmetformin discontinued 2024 \u2014 diet controlled\n\nNote: patient counseled on NSAID use with attention to renal function; BMP 07/2026 within normal limits."
+        },
+        {
+          "id": "DOC-5",
+          "type": "Radiology Report",
+          "source": "Northgate Imaging",
+          "date": "2026-07-30",
+          "pages": 1,
+          "content": "RADIOLOGY REPORT\nExam: Lumbar spine, 2 views\nDate: 07/30/2026\nIndication: Chronic low back pain\n\nFINDINGS: Vertebral body heights are maintained. Moderate disc space narrowing at L4-L5 and mild narrowing at L5-S1. Anterior osteophyte formation at multiple levels consistent with degenerative change. Facet arthropathy at L4-L5 and L5-S1. No acute fracture. No spondylolisthesis. Alignment within normal limits. Sacroiliac joints unremarkable.\n\nIMPRESSION: Multilevel degenerative changes of the lumbar spine, most pronounced at L4-L5. No acute osseous abnormality. Correlate clinically; radiographs do not evaluate for disc herniation or neural compression.\n\nElectronically signed, Radiology"
+        }
+      ],
+      "groundTruth": {
+        "criteriaMet": true,
+        "supportingCriteria": [
+          "C2"
+        ],
+        "correctAction": "approve",
+        "evidenceLocation": "DOC-3, page 9 (PT discharge summary, 6-week episode 02/24/2026-04/04/2026, goals not met, explicitly documents non-response to conservative management). Corroborated by DOC-4 (meloxicam initiated 03/02/2026, ongoing).",
+        "whyItGetsMissed": "The conservative management evidence sits on page 9 of an unitemized 14-page faxed outside-records packet from a different practice, five months before the request. The referring physician's own note says only 'has tried therapy in the past' with no dates or duration \u2014 which is what the nurse reviewer read.",
+        "oigMechanism": "Matches OIG April 2022 finding: plan claims insufficient documentation when the existing medical records were in fact sufficient to support medical necessity."
+      },
+      "claimsHistory": {
+        "_role": "Establishes DURATION. Cannot establish non-response.",
+        "lookbackMonths": 18,
+        "query": "conservative management for lumbar complaint \u2014 PT, chiropractic, injections",
+        "found": true,
+        "records": [
+          {
+            "claimId": "C-2026-0331847",
+            "dos": "2026-02-26",
+            "cpt": "97110",
+            "description": "Therapeutic exercise, each 15 min",
+            "provider": "Cascade Valley Orthopedics & Rehabilitation",
+            "status": "paid",
+            "units": 2
+          },
+          {
+            "claimId": "C-2026-0334102",
+            "dos": "2026-03-03",
+            "cpt": "97110",
+            "description": "Therapeutic exercise, each 15 min",
+            "provider": "Cascade Valley Orthopedics & Rehabilitation",
+            "status": "paid",
+            "units": 2
+          },
+          {
+            "claimId": "C-2026-0336890",
+            "dos": "2026-03-05",
+            "cpt": "97140",
+            "description": "Manual therapy techniques",
+            "provider": "Cascade Valley Orthopedics & Rehabilitation",
+            "status": "paid",
+            "units": 1
+          },
+          {
+            "claimId": "C-2026-0341556",
+            "dos": "2026-03-10",
+            "cpt": "97110",
+            "description": "Therapeutic exercise, each 15 min",
+            "provider": "Cascade Valley Orthopedics & Rehabilitation",
+            "status": "paid",
+            "units": 2
+          },
+          {
+            "claimId": "C-2026-0347221",
+            "dos": "2026-03-17",
+            "cpt": "97530",
+            "description": "Therapeutic activities",
+            "provider": "Cascade Valley Orthopedics & Rehabilitation",
+            "status": "paid",
+            "units": 1
+          },
+          {
+            "claimId": "C-2026-0352044",
+            "dos": "2026-03-24",
+            "cpt": "97140",
+            "description": "Manual therapy techniques",
+            "provider": "Cascade Valley Orthopedics & Rehabilitation",
+            "status": "paid",
+            "units": 1
+          },
+          {
+            "claimId": "C-2026-0357719",
+            "dos": "2026-03-31",
+            "cpt": "97110",
+            "description": "Therapeutic exercise, each 15 min",
+            "provider": "Cascade Valley Orthopedics & Rehabilitation",
+            "status": "paid",
+            "units": 2
+          },
+          {
+            "claimId": "C-2026-0361885",
+            "dos": "2026-04-04",
+            "cpt": "97162",
+            "description": "PT re-evaluation",
+            "provider": "Cascade Valley Orthopedics & Rehabilitation",
+            "status": "paid",
+            "units": 1
+          }
+        ],
+        "derived": {
+          "episodeStart": "2026-02-26",
+          "episodeEnd": "2026-04-04",
+          "durationWeeks": 5.4,
+          "visitCount": 8,
+          "criterionC2_durationSatisfied": true,
+          "criterionC2_nonResponseEstablished": false,
+          "statement": "8 paid therapy claims spanning 5.4 weeks. Duration requirement (>=4 weeks) satisfied on the plan's own claims record. Non-response is not determinable from claims."
+        }
+      }
+    },
+    {
+      "id": "PA-2026-115003",
+      "demoRole": "HERO_2_THE_OVERRIDE",
+      "member": {
+        "name": "Robert Cheng",
+        "age": 68,
+        "sex": "M",
+        "memberId": "H773094512",
+        "plan": "Medicare Advantage PPO",
+        "enrolledSince": "2023-01-01",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine without contrast",
+        "icd10": [
+          {
+            "code": "M54.16",
+            "description": "Radiculopathy, lumbar region"
+          }
+        ],
+        "requestingProvider": "Priya Raghunathan, MD",
+        "specialty": "Internal Medicine",
+        "facility": "Lakeshore Internal Medicine",
+        "submittedDate": "2026-08-27",
+        "urgency": "standard",
+        "submissionMethod": "provider portal with faxed attachments"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "K. Osei, RN",
+        "nurseRoutedDate": "2026-08-29",
+        "nurseNote": "No documentation of conservative management for the lumbar complaint located in submitted records. Outside therapy records present but appear to relate to a separate orthopedic episode. No red flags documented. Routing for medical director determination.",
+        "proposedAction": "deny",
+        "proposedReason": "Insufficient documentation of a four-week trial of conservative management (LCD L34220, criterion C2).",
+        "clockStartDate": "2026-08-27",
+        "decisionDueDate": "2026-09-03"
+      },
+      "documents": [
+        {
+          "id": "DOC-1",
+          "type": "Office Note",
+          "source": "Lakeshore Internal Medicine \u2014 P. Raghunathan, MD",
+          "date": "2026-08-20",
+          "pages": 2,
+          "content": "LAKESHORE INTERNAL MEDICINE\nOffice Visit \u2014 08/20/2026\nPatient: Robert Cheng, 68 y/o male\n\nHPI: Patient presents with approximately five weeks of right-sided low back pain radiating into the lateral calf. Describes an electric, shooting quality with prolonged sitting. Symptoms began without clear inciting event. Denies bowel or bladder dysfunction, saddle anesthesia, fever, weight loss. No history of malignancy. No trauma.\n\nOf note, patient underwent right total knee arthroplasty in January of this year and completed a course of post-operative rehabilitation, which he reports went well. He has returned to walking regularly.\n\nPMH: Osteoarthritis. Right TKA 01/2026. Hypertension. GERD.\n\nEXAM: Lumbar paraspinal tenderness on the right. Flexion mildly limited. Right straight leg raise positive at 45 degrees. Strength 5/5 bilaterally. Sensation intact. Reflexes symmetric. Right knee well-healed, ROM 0-120, no effusion.\n\nASSESSMENT: Right lumbar radiculopathy, five weeks duration.\n\nPLAN: Request MRI lumbar spine to evaluate for disc herniation with nerve root compression. Start meloxicam. Discussed physical therapy referral; patient prefers to await imaging before starting therapy again given his recent rehab course. Follow up after imaging.\n\nP. Raghunathan, MD"
+        },
+        {
+          "id": "DOC-2",
+          "type": "Outside Records Packet",
+          "source": "Meridian Physical Therapy",
+          "date": "2026-08-25",
+          "pages": 9,
+          "note": "Received by fax. Not itemized by intake.",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "Fax Cover Sheet",
+              "text": "MERIDIAN PHYSICAL THERAPY\nFax transmittal to Lakeshore Internal Medicine. 9 pages including cover. Re: CHENG, ROBERT."
+            },
+            {
+              "page": 2,
+              "heading": "Physical Therapy Initial Evaluation \u2014 01/28/2026",
+              "text": "PHYSICAL THERAPY INITIAL EVALUATION\nDate: 01/28/2026\nDiagnosis: Status post right total knee arthroplasty (Z96.651), 01/14/2026\nReferring: Orthopedic surgery\n\nSUBJECTIVE: Patient is 2 weeks status post right TKA. Reports expected post-surgical pain, using walker. Goals: independent ambulation without device, return to community walking.\n\nOBJECTIVE: Right knee AROM 5-85 deg. Quad strength 3+/5 right. Ambulates with rolling walker. Incision clean, dry, intact. Postural screen: mild lumbar lordosis noted in standing, no reported lumbar symptoms this date.\n\nPLAN: Skilled PT 3x/week for 8 weeks. Knee ROM, quadriceps strengthening, gait training, progressive weight bearing.\n\nT. Okonjo, PT"
+            },
+            {
+              "page": 3,
+              "heading": "Therapy Session Notes \u2014 February 2026",
+              "text": "Weekly progression notes documenting right knee range of motion gains, quadriceps strengthening, and gait training progression from rolling walker to single-point cane. Lumbar spine not addressed."
+            },
+            {
+              "page": 4,
+              "heading": "Therapy Session Notes \u2014 March 2026",
+              "text": "Continued knee-focused program. Patient progressing to independent ambulation. Stair training initiated. Notes reference generalized postural cueing during gait training."
+            },
+            {
+              "page": 5,
+              "heading": "Physical Therapy Discharge Summary \u2014 03/24/2026",
+              "isDistractor": true,
+              "text": "PHYSICAL THERAPY DISCHARGE SUMMARY\nDates of Service: 01/28/2026 through 03/24/2026\nDuration of Episode: 8 weeks\nTotal Visits: 21\n\nDIAGNOSIS TREATED: Status post right total knee arthroplasty, 01/14/2026.\n\nSUBJECTIVE AT DISCHARGE: Patient reports excellent progress. Minimal knee pain. Ambulating independently without assistive device. Has returned to daily walking.\n\nOBJECTIVE: Right knee AROM 0-122 deg. Quad strength 5/5. Independent ambulation, normal gait pattern. Postural assessment: lumbar lordosis within normal limits, no tenderness reported.\n\nGOALS: 4 of 4 functional goals met.\n\nASSESSMENT: Patient has completed an eight-week course of skilled physical therapy following right total knee arthroplasty with excellent functional outcome. All goals achieved.\n\nRECOMMENDATION: Discharge to independent home program.\n\nT. Okonjo, PT"
+            },
+            {
+              "page": 6,
+              "heading": "Home Exercise Program",
+              "text": "Knee-focused home exercise handout: heel slides, quad sets, straight leg raises, standing knee flexion, step-ups."
+            },
+            {
+              "page": 7,
+              "heading": "Attendance Record",
+              "text": "Visit grid, 01/28/2026 - 03/24/2026. 21 visits attended."
+            },
+            {
+              "page": 8,
+              "heading": "Billing Summary",
+              "text": "Itemized charges. Administrative content only."
+            },
+            {
+              "page": 9,
+              "heading": "Records Release",
+              "text": "Signed authorization dated 08/22/2026."
+            }
+          ]
+        },
+        {
+          "id": "DOC-3",
+          "type": "Medication List",
+          "source": "Lakeshore Internal Medicine",
+          "date": "2026-08-20",
+          "pages": 1,
+          "content": "ACTIVE MEDICATIONS \u2014 as of 08/20/2026\n\namlodipine 5 mg daily \u2014 start 2021-03-15\npantoprazole 40 mg daily \u2014 start 2022-08-01\nmeloxicam 15 mg daily \u2014 start 2026-08-20 \u2014 indication: lumbar radiculopathy \u2014 NEW this visit\nacetaminophen PRN"
+        }
+      ],
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "expectedModelBehavior": "flag_incorrectly",
+        "whyTheModelFlags": "The packet contains a complete, well-documented eight-week physical therapy course with a formal discharge summary, and the postural assessment lines mention the lumbar spine. On surface features this closely resembles documented conservative management.",
+        "whyTheModelIsWrong": "The therapy episode treated status post right total knee arthroplasty, not the lumbar complaint. The lumbar mentions are incidental postural screening. The lumbar symptoms began roughly five weeks before the request, four months after the therapy episode ended. No conservative management for the lumbar complaint has occurred \u2014 the referring note states the patient declined PT pending imaging, and meloxicam was started the same day as the request.",
+        "expectedOverrideReason": "Therapy course was post-operative knee rehabilitation, not conservative management directed at the lumbar complaint. Criterion C2 not met.",
+        "whyThisCaseMatters": "Two purposes. First, it proves the clinician is the decision-maker and that model errors are legible \u2014 a context error a reviewer spots in seconds, not a hallucination. Second, it demonstrates the cascade's most important property: when the deterministic layer and the judgment layer disagree, the system surfaces the conflict rather than picking a winner. Disagreement between layers is the highest-value signal in the system, because it marks exactly the cases where the answer is genuinely ambiguous.",
+        "expectedSystemBehavior": "surface_conflict",
+        "layerDisagreement": {
+          "claimsLayer": "No conservative management for a lumbar diagnosis. All 21 therapy claims carry diagnosis pointer Z96.651 (right knee arthroplasty).",
+          "narrativeLayer": "Physical therapy discharge summary located, 8-week episode, formal goals documented \u2014 surface features resemble documented conservative management.",
+          "resolution": "The claims layer is correct. The narrative layer was misled by a complete, well-formatted therapy record whose lumbar references are incidental postural screening.",
+          "systemAction": "Present both findings side by side, marked as conflicting. Do not silently resolve. The reviewer adjudicates."
+        }
+      },
+      "claimsHistory": {
+        "_role": "Shows why claims alone are insufficient in the other direction \u2014 the claims look right until you read the diagnosis pointer.",
+        "lookbackMonths": 18,
+        "query": "conservative management for lumbar complaint \u2014 PT, chiropractic, injections",
+        "found": true,
+        "records": [
+          {
+            "claimId": "C-2026-0298114",
+            "dos": "2026-01-28",
+            "cpt": "97161",
+            "description": "PT evaluation, low complexity",
+            "provider": "Meridian Physical Therapy",
+            "status": "paid",
+            "units": 1,
+            "diagnosisPointer": "Z96.651 \u2014 presence of right artificial knee joint"
+          },
+          {
+            "claimId": "C-2026-0301990",
+            "dos": "2026-02-11",
+            "cpt": "97110",
+            "description": "Therapeutic exercise, each 15 min",
+            "provider": "Meridian Physical Therapy",
+            "status": "paid",
+            "units": 3,
+            "diagnosisPointer": "Z96.651 \u2014 presence of right artificial knee joint"
+          },
+          {
+            "claimId": "C-2026-0309447",
+            "dos": "2026-03-04",
+            "cpt": "97116",
+            "description": "Gait training therapy",
+            "provider": "Meridian Physical Therapy",
+            "status": "paid",
+            "units": 2,
+            "diagnosisPointer": "Z96.651 \u2014 presence of right artificial knee joint"
+          },
+          {
+            "claimId": "C-2026-0316302",
+            "dos": "2026-03-24",
+            "cpt": "97162",
+            "description": "PT re-evaluation",
+            "provider": "Meridian Physical Therapy",
+            "status": "paid",
+            "units": 1,
+            "diagnosisPointer": "Z96.651 \u2014 presence of right artificial knee joint"
+          }
+        ],
+        "derived": {
+          "episodeStart": "2026-01-28",
+          "episodeEnd": "2026-03-24",
+          "durationWeeks": 8.0,
+          "visitCount": 21,
+          "criterionC2_durationSatisfied": false,
+          "criterionC2_nonResponseEstablished": false,
+          "statement": "21 paid therapy claims spanning 8 weeks, but every claim carries a diagnosis pointer of Z96.651 (right knee arthroplasty), not a lumbar diagnosis. No conservative management for the lumbar complaint appears in claims.",
+          "note": "The diagnosis pointer is the deterministic signal that distinguishes this case from PA-2026-114872. The claims layer gets this RIGHT where the narrative reading gets it WRONG."
+        }
+      }
+    },
+    {
+      "id": "PA-2026-115147",
+      "demoRole": "HERO_3_THE_SILENCE",
+      "member": {
+        "name": "Dolores Ramirez",
+        "age": 79,
+        "sex": "F",
+        "memberId": "H905513288",
+        "plan": "Medicare Advantage HMO",
+        "enrolledSince": "2016-01-01",
+        "language": "Spanish",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine without contrast",
+        "icd10": [
+          {
+            "code": "M51.36",
+            "description": "Other intervertebral disc degeneration, lumbar region"
+          }
+        ],
+        "requestingProvider": "Daniel Restrepo, MD",
+        "specialty": "Family Medicine",
+        "facility": "Riverbend Community Health",
+        "submittedDate": "2026-08-28",
+        "urgency": "standard",
+        "submissionMethod": "provider portal"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "K. Osei, RN",
+        "nurseRoutedDate": "2026-08-29",
+        "nurseNote": "Prior lumbar MRI on file dated 07/15/2026, six weeks prior to this request. Referring documentation does not indicate interval change in symptoms or new neurologic findings. Possible duplicative imaging per L34220. Routing for medical director determination.",
+        "proposedAction": "deny",
+        "proposedReason": "Duplication of prior imaging without documented interval change (LCD L34220, criterion C3).",
+        "clockStartDate": "2026-08-28",
+        "decisionDueDate": "2026-09-04"
+      },
+      "documents": [
+        {
+          "id": "DOC-1",
+          "type": "Office Note",
+          "source": "Riverbend Community Health \u2014 D. Restrepo, MD",
+          "date": "2026-08-25",
+          "pages": 1,
+          "content": "RIVERBEND COMMUNITY HEALTH\nOffice Visit \u2014 08/25/2026\nPatient: Dolores Ramirez, 79 y/o female. Interpreter present.\n\nHPI: Patient returns for follow-up of chronic low back pain, longstanding. Reports symptoms are unchanged since her last visit. Pain remains 4/10, worse with prolonged activity, relieved with rest. No new radiation. Denies numbness, weakness, bowel or bladder changes, fever, or weight loss. No falls or trauma in the interval.\n\nShe asks whether the imaging can be repeated because her daughter has read that MRI findings can change.\n\nEXAM: Unchanged from prior. Mild lumbar paraspinal tenderness. Flexion 55 deg. Strength 5/5 bilateral LE. Sensation intact. Reflexes symmetric. Negative straight leg raise bilaterally.\n\nASSESSMENT: Chronic low back pain secondary to known lumbar degenerative disc disease. Clinically stable, no interval change.\n\nPLAN: Patient requests repeat MRI. Will submit request. Continue current conservative measures. Discussed that findings are unlikely to change management at this time. No surgical consideration at present.\n\nD. Restrepo, MD"
+        },
+        {
+          "id": "DOC-2",
+          "type": "Radiology Report",
+          "source": "Riverbend Imaging",
+          "date": "2026-07-15",
+          "pages": 1,
+          "content": "RADIOLOGY REPORT\nExam: MRI lumbar spine without contrast\nDate: 07/15/2026\nIndication: Chronic low back pain\n\nFINDINGS: Multilevel degenerative disc disease most pronounced at L4-L5 with disc desiccation and mild disc height loss. Mild broad-based disc bulge at L4-L5 without significant central canal stenosis. Mild bilateral facet arthropathy at L4-L5 and L5-S1. Neural foramina patent bilaterally. No nerve root compression identified. No fracture, marrow replacement, or abnormal enhancement. Conus terminates at L1.\n\nIMPRESSION: Multilevel lumbar degenerative disc disease without significant stenosis or nerve root compression. No acute finding.\n\nElectronically signed, Radiology"
+        },
+        {
+          "id": "DOC-3",
+          "type": "Medication List",
+          "source": "Riverbend Community Health",
+          "date": "2026-08-25",
+          "pages": 1,
+          "content": "ACTIVE MEDICATIONS \u2014 as of 08/25/2026\n\namlodipine 10 mg daily\nlevothyroxine 75 mcg daily\nacetaminophen 650 mg TID PRN \u2014 indication: low back pain \u2014 ongoing since 2024"
+        }
+      ],
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "expectedModelBehavior": "stay_silent",
+        "reasoning": "Prior lumbar MRI six weeks earlier. Documentation explicitly states symptoms unchanged, examination unchanged, no new neurologic findings, and no surgical consideration. Criterion C3 (duplicative imaging) applies and criterion C4 (uncomplicated DDD without surgical consideration) also applies. There is no buried supporting evidence to find, because none exists.",
+        "whyThisCaseMatters": "Proves the system is selective rather than an approval machine. A tool that flags every case is a tool that gets ignored. Also seeds the equity discussion: this member has limited English proficiency and no prior appeals, which is exactly the profile least likely to challenge a denial \u2014 so the correctness of the first decision matters most here."
+      },
+      "claimsHistory": {
+        "_role": "Nothing to find. Claims confirm the absence rather than inferring it.",
+        "lookbackMonths": 18,
+        "query": "conservative management for lumbar complaint \u2014 PT, chiropractic, injections",
+        "found": false,
+        "records": [],
+        "derived": {
+          "criterionC2_durationSatisfied": false,
+          "criterionC2_nonResponseEstablished": false,
+          "statement": "No therapy, chiropractic, or injection claims for a lumbar diagnosis in the 18-month lookback.",
+          "priorImagingClaim": {
+            "claimId": "C-2026-0402118",
+            "dos": "2026-07-15",
+            "cpt": "72148",
+            "description": "MRI lumbar spine without contrast",
+            "status": "paid",
+            "note": "Directly establishes criterion C3 (duplicative imaging) from the plan's own record \u2014 no reading required."
+          }
+        }
+      }
+    }
+  ],
+  "_architectureNote": "Cascade design: (1) deterministic claims query, (2) structured field checks, (3) LLM read of the narrative for what neither can answer. The model is reserved for judgments that require reading. Claims are evidentially stronger than a model finding \u2014 a paid claim is the plan's own transaction record, not an inference.",
+  "_designPrinciples": [
+    "Cheapest sufficient tool per sub-question. Claims before structured fields before narrative reading.",
+    "Claims are evidentially stronger than model findings \u2014 a paid claim is a transaction record, not an inference.",
+    "Layer disagreement is surfaced, never silently resolved. The reviewer adjudicates.",
+    "Every model finding must quote text that provably exists in the source document, verified by string match before display.",
+    "The system can surface support. It can never recommend or imply a denial.",
+    "Silence is not endorsement: the empty state reads 'no supporting evidence identified \u2014 this is not a coverage recommendation.'"
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "source": {
+    "lcdId": "L34220",
+    "title": "Lumbar MRI",
+    "contractor": "Noridian Healthcare Solutions, LLC",
+    "effectiveDate": "2025-10-23",
+    "url": "https://www.cms.gov/medicare-coverage-database/view/lcd.aspx?LCDId=34220",
+    "note": "Criteria text below is drawn from the public CMS Local Coverage Determination. Used verbatim where quoted so the prototype checks against real Medicare coverage language, not invented rules."
+  },
+  "criteria": [
+    {
+      "id": "C1",
+      "shortName": "Red-flag indication",
+      "type": "sufficient",
+      "text": "Lumbar MRI is covered for patients with red-flag conditions suggesting medical urgency, including suspected tumor, infection, herniated disc with nerve compression, or major neurological problems.",
+      "redFlags": [
+        "major trauma, or minor trauma in a patient with osteoporosis",
+        "history of cancer",
+        "fever, chills, or unexplained weight loss",
+        "bacterial infection or IV drug use",
+        "immune suppression",
+        "night-time pain",
+        "saddle anesthesia",
+        "bladder dysfunction",
+        "progressive neurologic deficit",
+        "anal sphincter laxity or perianal sensory loss",
+        "motor weakness"
+      ],
+      "effect": "If any red flag is present and documented, imaging is permitted without delay and the conservative management requirement does not apply."
+    },
+    {
+      "id": "C2",
+      "shortName": "Conservative management trial",
+      "type": "required_if_no_red_flag",
+      "text": "MRI will be covered only if the patient has not responded to a reasonable trial of conservative management lasting at least four weeks.",
+      "verbatim": true,
+      "evidenceAccepted": [
+        "physical therapy course with dates and outcome",
+        "documented trial of NSAIDs or other analgesics with dates",
+        "activity modification with documented duration",
+        "chiropractic care with dates and outcome",
+        "home exercise program with documented adherence and duration"
+      ],
+      "commonFailure": "Conservative management is frequently documented in outside records, prior-practice notes, or therapy discharge summaries rather than in the referring physician's note attached to the request."
+    },
+    {
+      "id": "C3",
+      "shortName": "No duplicative imaging",
+      "type": "exclusion",
+      "text": "Duplication of other imaging studies is not covered absent inconclusive CT findings or a documented change in clinical status.",
+      "effect": "A repeat lumbar MRI without documented interval change in symptoms or findings does not meet coverage criteria."
+    },
+    {
+      "id": "C4",
+      "shortName": "Uncomplicated degenerative disc disease",
+      "type": "exclusion",
+      "text": "Uncomplicated degenerative disc disease without surgical consideration is not covered.",
+      "effect": "Imaging solely to characterize known DDD, where no surgical or interventional decision depends on the result, does not meet coverage criteria."
+    },
+    {
+      "id": "C5",
+      "shortName": "Clinical rationale required",
+      "type": "documentation",
+      "text": "Lumbar MRI abnormalities alone do not validate the need for the test without other supporting clinical rationale. Medical records must demonstrate that the service is reasonable and necessary, and an attending physician order is required.",
+      "sourceArticle": "A57206"
+    }
+  ]
+}

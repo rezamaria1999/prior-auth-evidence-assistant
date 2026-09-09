@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coverage Evidence Assistant — Maria</title>
+<style>
+  :root{
+    --ink:#14181c; --ink-soft:#4a545e; --ink-faint:#8a949e;
+    --paper:#fbfaf8; --rule:#dedad3;
+    --accent:#1f6b52; --accent-soft:#e9f2ee;
+    --warn:#9a4a1f; --warn-soft:#faeee6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:#22262a; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif; color:var(--ink); overflow:hidden; -webkit-font-smoothing:antialiased}
+  #stage{position:fixed; inset:0; display:flex; align-items:center; justify-content:center}
+  #deck{width:1280px; height:720px; position:relative; transform-origin:center center; background:var(--paper); box-shadow:0 8px 60px rgba(0,0,0,.45); overflow:hidden}
+  .slide{position:absolute; inset:0; padding:56px 80px; display:none; flex-direction:column; justify-content:center}
+  .slide.on{display:flex}
+  .slide.top{justify-content:flex-start}
+
+  .eyebrow{font-size:17px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:18px}
+  .eyebrow .tag{background:var(--accent); color:#fff; padding:4px 10px; border-radius:5px; margin-right:12px; letter-spacing:.09em}
+  h1{font-size:66px; line-height:1.07; letter-spacing:-.025em; font-weight:700}
+  h2{font-size:42px; line-height:1.16; letter-spacing:-.018em; font-weight:700; margin-bottom:24px}
+  h2.sm{font-size:35px; margin-bottom:20px}
+  p{font-size:26px; line-height:1.45; color:var(--ink-soft); max-width:64ch}
+  p + p{margin-top:18px}
+  strong{color:var(--ink); font-weight:700}
+
+  ul.pts{list-style:none; margin-top:4px}
+  ul.pts li{position:relative; padding-left:32px; margin-bottom:17px; font-size:25px; line-height:1.4; color:var(--ink-soft); max-width:66ch}
+  ul.pts li:last-child{margin-bottom:0}
+  ul.pts li::before{content:""; position:absolute; left:2px; top:13px; width:12px; height:12px; border-radius:50%; background:var(--accent)}
+  ul.pts li b{color:var(--ink)}
+
+  table{border-collapse:collapse; width:100%; margin-top:8px}
+  td,th{text-align:left; padding:14px 16px; font-size:24px; border-bottom:2px solid var(--rule); vertical-align:top}
+  th{font-size:15px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); font-weight:700; border-bottom:3px solid var(--ink); padding-bottom:9px}
+  td.num{text-align:right; font-variant-numeric:tabular-nums; font-weight:700; white-space:nowrap}
+  tr.hi td{background:var(--accent-soft); font-weight:700; color:var(--ink)}
+  tr.dim td{color:var(--ink-faint)}
+  tr:last-child td{border-bottom:none}
+  table.compact td,table.compact th{padding:10px 14px; font-size:22px}
+  table.compact th{font-size:14px; padding-bottom:7px}
+  .sub{display:block; font-size:19px; color:var(--ink-faint); font-weight:400; margin-top:3px}
+
+  .stats{display:flex; gap:20px; margin-top:14px}
+  .stat{flex:1; background:#fff; border:2px solid var(--rule); border-radius:13px; padding:22px 20px}
+  .stat.key{border-color:var(--accent); border-width:3px; background:var(--accent-soft)}
+  .stat .n{font-size:50px; font-weight:700; letter-spacing:-.03em; line-height:1; color:var(--accent)}
+  .stat .n.warn{color:var(--warn)}
+  .stat .l{margin-top:12px; font-size:19px; line-height:1.32; color:var(--ink-soft)}
+
+  .note{background:var(--warn-soft); border-left:6px solid var(--warn); padding:20px 26px; margin-top:22px; font-size:24px; line-height:1.4; color:var(--ink); max-width:66ch}
+  .note.g{background:var(--accent-soft); border-left-color:var(--accent)}
+
+  figure{margin-top:2px}
+  figure svg{width:100%; height:auto; display:block}
+  figcaption{margin-top:12px; font-size:21px; color:var(--ink-soft); line-height:1.38}
+
+  .demo{background:var(--ink)}
+  .demo h1{color:#fff}
+  .demo .eyebrow{color:#7fd0b0}
+  .demo .eyebrow .tag{background:#7fd0b0; color:var(--ink)}
+  .demo .cases{display:flex; gap:18px; margin-top:34px}
+  .demo .case{flex:1; border:2px solid #39434d; border-radius:13px; padding:22px 20px}
+  .demo .case .n{font-size:16px; letter-spacing:.11em; text-transform:uppercase; color:#7fd0b0; font-weight:700}
+  .demo .case .h{font-size:26px; font-weight:700; color:#fff; margin:10px 0 8px}
+  .demo .case .b{font-size:19px; line-height:1.36; color:#96a2ac}
+
+  .title{background:var(--ink)}
+  .title h1{color:#fff; max-width:19ch}
+  .title .s{margin-top:26px; font-size:28px; color:#98a4ae; line-height:1.42; max-width:54ch}
+  .title .who{margin-top:48px; padding-top:24px; border-top:2px solid #39434d; font-size:23px; color:#7fd0b0; font-weight:600}
+
+  .agenda{display:flex; flex-direction:column; gap:11px; margin-top:6px}
+  .ag{display:flex; align-items:baseline; gap:18px; padding:13px 18px; border-radius:10px; background:#fff; border:2px solid var(--rule)}
+  .ag .n{width:34px; flex:none; font-size:24px; font-weight:700; color:var(--accent)}
+  .ag .t{font-size:25px; font-weight:700; color:var(--ink); width:250px; flex:none}
+  .ag .d{font-size:21px; color:var(--ink-soft); line-height:1.32}
+
+  #num{position:fixed; right:20px; bottom:16px; z-index:20; font-size:15px; color:#6b7580; font-variant-numeric:tabular-nums}
+  #timer{position:fixed; left:20px; bottom:14px; z-index:20; display:none; font-size:26px; font-weight:700; color:#7fd0b0; font-variant-numeric:tabular-nums; background:rgba(0,0,0,.5); padding:6px 14px; border-radius:8px}
+  #timer.on{display:block}
+  #notes{position:fixed; left:0; right:0; bottom:0; z-index:19; display:none; background:#101418; color:#c8d2dc; padding:18px 26px; font-size:19px; line-height:1.45; border-top:3px solid var(--accent); max-height:32vh; overflow:auto}
+  #notes.on{display:block}
+  #notes b{color:#7fd0b0}
+  #help{position:fixed; left:50%; top:14px; transform:translateX(-50%); z-index:21; background:rgba(0,0,0,.72); color:#cfd8e1; font-size:14px; padding:7px 16px; border-radius:20px; transition:opacity .5s}
+  #help.hide{opacity:0}
+</style>
+</head>
+<body>
+
+<div id="stage"><div id="deck">
+
+<!-- 1 · TITLE -->
+<section class="slide title">
+  <div class="eyebrow">Utilization Management · Advanced Imaging</div>
+  <h1>The Coverage Evidence Assistant</h1>
+  <div class="s">Requests get denied for missing documentation that Humana already holds. This closes the gap before the decision instead of after it.</div>
+  <div class="who">Maria · Senior AI Technical Product Manager</div>
+</section>
+
+<!-- 2 · AGENDA -->
+<section class="slide top" style="padding-top:50px">
+  <div class="eyebrow">What I was asked for, and where each part sits</div>
+  <div class="agenda">
+    <div class="ag"><div class="n">1</div><div class="t">Problem Brief</div><div class="d">How I picked this problem, who it is for, why it matters now, and how big it is</div></div>
+    <div class="ag"><div class="n">2</div><div class="t">Service Design</div><div class="d">One member's journey today, the same journey with this built, and where it plugs in</div></div>
+    <div class="ag"><div class="n">3</div><div class="t">Working Prototype</div><div class="d">Live, three cases</div></div>
+    <div class="ag"><div class="n">4</div><div class="t">Product Roadmap</div><div class="d">Five phases, each gated by what actually blocks it</div></div>
+    <div class="ag"><div class="n">5</div><div class="t">Key Tradeoff</div><div class="d">The capability I gave up, what it costs, and what pays for it</div></div>
+  </div>
+  <p style="margin-top:22px; font-size:23px">Roughly twenty-five minutes, then questions. Interrupt whenever.</p>
+</section>
+
+<!-- 3 · OPTIONS -->
+<section class="slide top" style="padding-top:46px">
+  <div class="eyebrow"><span class="tag">1</span>Problem Brief · choosing where to work</div>
+  <h2 class="sm" style="margin-bottom:16px">Five candidates across utilization management, care management and claims.</h2>
+  <table class="compact">
+    <tr><th style="width:52px"></th><th style="width:340px">What the product would be</th><th>Why it did or didn't win</th></tr>
+    <tr class="dim"><td><strong>A</strong></td><td>Auto-approve clear-cut prior auth, route the rest</td><td>Least differentiated. Closest to what vendors already sell here</td></tr>
+    <tr class="dim"><td><strong>B</strong></td><td>Length-of-stay decisions in post-acute care</td><td>Deepest specialist knowledge on the list, and active industry litigation</td></tr>
+    <tr class="hi"><td><strong>C</strong></td><td>Catch wrong denials before the letter goes out</td><td><strong>Chosen.</strong> The failure is documented by CMS's own auditor, and the process is codified so I can be precise rather than approximate</td></tr>
+    <tr class="dim"><td><strong>D</strong></td><td>Care management and Stars gap closure</td><td>Closest to my own background, but risk stratification is twenty-year-old actuarial practice. Hard to make genuinely AI-shaped</td></tr>
+    <tr class="dim"><td><strong>E</strong></td><td>Triage provider claim disputes</td><td>Real problem, well documented, but no member ever feels the fix</td></tr>
+  </table>
+  <p style="margin-top:16px; font-size:23px">Three tests: is the failure documented by someone outside Humana, is the data to fix it already inside the company, and does a wrong answer reach a member. C was the only one where all three held.</p>
+</section>
+
+<!-- 4 · THE PROBLEM -->
+<section class="slide top" style="padding-top:46px">
+  <div class="eyebrow"><span class="tag">1</span>Problem Brief · the problem</div>
+  <h2 class="sm" style="margin-bottom:18px">Every 100 denials. About 12 get appealed, and roughly 9 of those are overturned.</h2>
+  <figure style="margin-top:0">
+    <svg viewBox="0 0 762 236" role="img" aria-label="A hundred dots for a hundred denials. Nine filled: appealed and overturned. Three outlined: appealed and upheld. Eighty-eight grey: never appealed, never reviewed again.">
+      <circle cx="14" cy="14" r="9" fill="#1f6b52"/><circle cx="48" cy="14" r="9" fill="#1f6b52"/><circle cx="82" cy="14" r="9" fill="#1f6b52"/><circle cx="116" cy="14" r="9" fill="#1f6b52"/><circle cx="150" cy="14" r="9" fill="#1f6b52"/>
+      <circle cx="184" cy="14" r="9" fill="#1f6b52"/><circle cx="218" cy="14" r="9" fill="#1f6b52"/><circle cx="252" cy="14" r="9" fill="#1f6b52"/><circle cx="286" cy="14" r="9" fill="#1f6b52"/><circle cx="320" cy="14" r="8" fill="none" stroke="#1f6b52" stroke-width="3"/>
+      <circle cx="354" cy="14" r="8" fill="none" stroke="#1f6b52" stroke-width="3"/><circle cx="388" cy="14" r="8" fill="none" stroke="#1f6b52" stroke-width="3"/><circle cx="422" cy="14" r="9" fill="#dedad3"/><circle cx="456" cy="14" r="9" fill="#dedad3"/><circle cx="490" cy="14" r="9" fill="#dedad3"/>
+      <circle cx="524" cy="14" r="9" fill="#dedad3"/><circle cx="558" cy="14" r="9" fill="#dedad3"/><circle cx="592" cy="14" r="9" fill="#dedad3"/><circle cx="626" cy="14" r="9" fill="#dedad3"/><circle cx="660" cy="14" r="9" fill="#dedad3"/>
+      <circle cx="14" cy="48" r="9" fill="#dedad3"/><circle cx="48" cy="48" r="9" fill="#dedad3"/><circle cx="82" cy="48" r="9" fill="#dedad3"/><circle cx="116" cy="48" r="9" fill="#dedad3"/><circle cx="150" cy="48" r="9" fill="#dedad3"/>
+      <circle cx="184" cy="48" r="9" fill="#dedad3"/><circle cx="218" cy="48" r="9" fill="#dedad3"/><circle cx="252" cy="48" r="9" fill="#dedad3"/><circle cx="286" cy="48" r="9" fill="#dedad3"/><circle cx="320" cy="48" r="9" fill="#dedad3"/>
+      <circle cx="354" cy="48" r="9" fill="#dedad3"/><circle cx="388" cy="48" r="9" fill="#dedad3"/><circle cx="422" cy="48" r="9" fill="#dedad3"/><circle cx="456" cy="48" r="9" fill="#dedad3"/><circle cx="490" cy="48" r="9" fill="#dedad3"/>
+      <circle cx="524" cy="48" r="9" fill="#dedad3"/><circle cx="558" cy="48" r="9" fill="#dedad3"/><circle cx="592" cy="48" r="9" fill="#dedad3"/><circle cx="626" cy="48" r="9" fill="#dedad3"/><circle cx="660" cy="48" r="9" fill="#dedad3"/>
+      <circle cx="14" cy="82" r="9" fill="#dedad3"/><circle cx="48" cy="82" r="9" fill="#dedad3"/><circle cx="82" cy="82" r="9" fill="#dedad3"/><circle cx="116" cy="82" r="9" fill="#dedad3"/><circle cx="150" cy="82" r="9" fill="#dedad3"/>
+      <circle cx="184" cy="82" r="9" fill="#dedad3"/><circle cx="218" cy="82" r="9" fill="#dedad3"/><circle cx="252" cy="82" r="9" fill="#dedad3"/><circle cx="286" cy="82" r="9" fill="#dedad3"/><circle cx="320" cy="82" r="9" fill="#dedad3"/>
+      <circle cx="354" cy="82" r="9" fill="#dedad3"/><circle cx="388" cy="82" r="9" fill="#dedad3"/><circle cx="422" cy="82" r="9" fill="#dedad3"/><circle cx="456" cy="82" r="9" fill="#dedad3"/><circle cx="490" cy="82" r="9" fill="#dedad3"/>
+      <circle cx="524" cy="82" r="9" fill="#dedad3"/><circle cx="558" cy="82" r="9" fill="#dedad3"/><circle cx="592" cy="82" r="9" fill="#dedad3"/><circle cx="626" cy="82" r="9" fill="#dedad3"/><circle cx="660" cy="82" r="9" fill="#dedad3"/>
+      <circle cx="14" cy="116" r="9" fill="#dedad3"/><circle cx="48" cy="116" r="9" fill="#dedad3"/><circle cx="82" cy="116" r="9" fill="#dedad3"/><circle cx="116" cy="116" r="9" fill="#dedad3"/><circle cx="150" cy="116" r="9" fill="#dedad3"/>
+      <circle cx="184" cy="116" r="9" fill="#dedad3"/><circle cx="218" cy="116" r="9" fill="#dedad3"/><circle cx="252" cy="116" r="9" fill="#dedad3"/><circle cx="286" cy="116" r="9" fill="#dedad3"/><circle cx="320" cy="116" r="9" fill="#dedad3"/>
+      <circle cx="354" cy="116" r="9" fill="#dedad3"/><circle cx="388" cy="116" r="9" fill="#dedad3"/><circle cx="422" cy="116" r="9" fill="#dedad3"/><circle cx="456" cy="116" r="9" fill="#dedad3"/><circle cx="490" cy="116" r="9" fill="#dedad3"/>
+      <circle cx="524" cy="116" r="9" fill="#dedad3"/><circle cx="558" cy="116" r="9" fill="#dedad3"/><circle cx="592" cy="116" r="9" fill="#dedad3"/><circle cx="626" cy="116" r="9" fill="#dedad3"/><circle cx="660" cy="116" r="9" fill="#dedad3"/>
+      <circle cx="14" cy="150" r="9" fill="#dedad3"/><circle cx="48" cy="150" r="9" fill="#dedad3"/><circle cx="82" cy="150" r="9" fill="#dedad3"/><circle cx="116" cy="150" r="9" fill="#dedad3"/><circle cx="150" cy="150" r="9" fill="#dedad3"/>
+      <circle cx="184" cy="150" r="9" fill="#dedad3"/><circle cx="218" cy="150" r="9" fill="#dedad3"/><circle cx="252" cy="150" r="9" fill="#dedad3"/><circle cx="286" cy="150" r="9" fill="#dedad3"/><circle cx="320" cy="150" r="9" fill="#dedad3"/>
+      <circle cx="354" cy="150" r="9" fill="#dedad3"/><circle cx="388" cy="150" r="9" fill="#dedad3"/><circle cx="422" cy="150" r="9" fill="#dedad3"/><circle cx="456" cy="150" r="9" fill="#dedad3"/><circle cx="490" cy="150" r="9" fill="#dedad3"/>
+      <circle cx="524" cy="150" r="9" fill="#dedad3"/><circle cx="558" cy="150" r="9" fill="#dedad3"/><circle cx="592" cy="150" r="9" fill="#dedad3"/><circle cx="626" cy="150" r="9" fill="#dedad3"/><circle cx="660" cy="150" r="9" fill="#dedad3"/>
+      <circle cx="14" cy="205" r="9" fill="#1f6b52"/><text x="32" y="212" font-size="18" fill="#14181c">appealed, overturned</text>
+      <circle cx="234" cy="205" r="8" fill="none" stroke="#1f6b52" stroke-width="3"/><text x="252" y="212" font-size="18" fill="#14181c">appealed, upheld</text>
+      <circle cx="424" cy="205" r="9" fill="#dedad3"/><text x="442" y="212" font-size="18" font-weight="700" fill="#14181c">never appealed, never re-examined</text>
+    </svg>
+  </figure>
+  <p style="margin-top:18px; font-size:24px; color:var(--ink)">Appealing takes initiative, paperwork and usually an advocate. Whether a first decision ever gets checked depends on who the member is.</p>
+</section>
+
+<!-- 6 · HUMANA POSITION -->
+<section class="slide top" style="padding-top:46px">
+  <div class="eyebrow"><span class="tag">1</span>Problem Brief · Humana's position, for context</div>
+  <h2 class="sm" style="margin-bottom:16px">Humana runs the highest prior authorization volume in Medicare Advantage at the lowest denial rate.</h2>
+  <div class="stats">
+    <div class="stat"><div class="n">2.2</div><div class="l">prior auth requests per enrollee. Industry average is 1.7, UnitedHealth 1.0</div></div>
+    <div class="stat"><div class="n">5.8%</div><div class="l">denial rate. UnitedHealth 12.8%, industry 7.7%</div></div>
+    <div class="stat key"><div class="n">0.128</div><div class="l"><strong>denials per enrollee — identical to UnitedHealth's 0.128</strong></div></div>
+  </div>
+  <p style="margin-top:20px; font-size:24px">KFF notes that plans requiring prior auth on more services deny a smaller share of them. So the rate gap is mostly denominator, and per member the exposure matches. <strong>What matters here is the absolute number: 5.8% of roughly 16 million requests is about 930,000 denials a year.</strong></p>
+  <p style="margin-top:12px; font-size:22px">Humana has also already removed 340+ codes from prior authorization. The easy approvals are gone. What is left is the hard residual.</p>
+</section>
+
+<!-- 7 · WHY NOW -->
+<section class="slide top" style="padding-top:50px">
+  <div class="eyebrow"><span class="tag">1</span>Problem Brief · why now</div>
+  <h2 class="sm">Humana has publicly committed to being fast. It has also started publishing how often it is right.</h2>
+  <table class="compact">
+    <tr><td style="width:210px"><strong>2026</strong><span class="sub">now</span></td><td>CMS-0057-F clocks are live: 7 days standard, 72 hours expedited. Decision-quality metrics went public on 31 March</td></tr>
+    <tr><td><strong>2026</strong><span class="sub">now</span></td><td>Humana's own pledge: 95% of complete electronic requests decided within one business day. Gold carding launching</td></tr>
+    <tr><td><strong>Jan 2027</strong></td><td>Four FHIR APIs land, including the Prior Authorization API</td></tr>
+    <tr class="hi"><td><strong>Through 2027</strong></td><td>Humana becomes the largest MA insurer, around 7.3 million members. Every per-member rate scales with it</td></tr>
+  </table>
+  <p style="margin-top:20px; font-size:25px; color:var(--ink)">Speed and accuracy normally trade against each other, and both are now measured in public. That tension did not exist eighteen months ago, because the accuracy half was not published.</p>
+</section>
+
+<!-- 8 · TARGET USER -->
+<section class="slide top" style="padding-top:50px">
+  <div class="eyebrow"><span class="tag">1</span>Problem Brief · who this is for</div>
+  <h2 class="sm">The clinician who reviews a case before a denial can be issued. CMS requires that person to exist.</h2>
+  <div class="note g" style="margin-top:0">Under CMS-4201-F, an adverse medical-necessity decision must be reviewed by <strong>"a physician or other appropriate health care professional with expertise in the field of medicine … before"</strong> the determination is issued.</div>
+  <ul class="pts" style="margin-top:22px">
+    <li><b>This adds no step and no approver.</b> It improves what is on the screen at a review that already happens and is already mandated.</li>
+    <li><b>The nurse reviewer benefits too.</b> Cases arrive with the record already searched instead of as an unsorted packet.</li>
+    <li><b>The member never sees it</b>, and that is the point. Whether their first decision is correct stops depending on whether they can appeal.</li>
+  </ul>
+</section>
+
+<!-- 9 · SIZING -->
+<section class="slide top" style="padding-top:56px">
+  <div class="eyebrow"><span class="tag">1</span>Problem Brief · how big</div>
+  <h2 class="sm">Per 10,000 denials in one service line</h2>
+  <table>
+    <tr><td>Wrongly denied, applying the OIG's 13% finding</td><td class="num">1,300</td></tr>
+    <tr class="dim"><td>Appealed and overturned — what the process catches today</td><td class="num">~120</td></tr>
+    <tr class="hi"><td>Never appealed, so never corrected</td><td class="num">~1,180</td></tr>
+  </table>
+  <p style="margin-top:22px; font-size:25px; color:var(--ink)">Most denials are correct. The ones that are not are only found when somebody appeals, and <strong>the group that never appeals is roughly ten times the group that does.</strong></p>
+  <p style="margin-top:14px; font-size:22px">OIG's 13% comes from a 2019 sample across 15 organizations, not from Humana, and Humana already denies below the industry rate. So treat 13% as the ceiling. Even at a third of it, this is tens of thousands of cases a year.</p>
+</section>
+
+<!-- 10 · CURRENT STATE -->
+<section class="slide top" style="padding-top:44px">
+  <div class="eyebrow"><span class="tag">2</span>Service Design · current state · Margaret Ellison, 72</div>
+  <h2 class="sm" style="margin-bottom:14px">Denied on day 7 for missing documentation of conservative management.</h2>
+  <table class="compact">
+    <tr><th style="width:96px">Day</th><th>What happened</th></tr>
+    <tr><td><strong>0</strong></td><td>Provider submits the request with a 14-page fax of outside records</td></tr>
+    <tr><td><strong>2</strong></td><td>Nurse review. The referring note says only "has tried therapy in the past" — no dates, nothing verifiable — so she routes it on</td></tr>
+    <tr><td><strong>7</strong></td><td>Denied. Letter goes out inside the regulatory clock</td></tr>
+    <tr><td><strong>15</strong></td><td>The practice files an appeal and re-sends the same records</td></tr>
+    <tr><td><strong>43</strong></td><td>Overturned on reconsideration. Nothing new was submitted</td></tr>
+    <tr class="hi"><td><strong>50</strong></td><td>MRI performed. Every document that justified it was already in the file on day 0</td></tr>
+  </table>
+</section>
+
+<!-- 11 · WHY DENIED -->
+<section class="slide top" style="padding-top:56px">
+  <div class="eyebrow"><span class="tag">2</span>Service Design · what went wrong</div>
+  <h2 class="sm">Nobody made a mistake. The evidence was in the building, in three places.</h2>
+  <ul class="pts">
+    <li><b>Eight paid therapy claims</b> across 5.4 weeks, in Humana's own claims system. Humana paid for the therapy that proves the four-week trial happened.</li>
+    <li><b>A therapy discharge summary on page 9</b> of the 14-page fax: "0 of 3 functional goals met… symptoms have not responded to conservative management."</li>
+    <li><b>Meloxicam on the medication list</b> since March, still active.</li>
+  </ul>
+  <div class="note">Day 7 counts as a success in every operating metric Humana runs. The clock was met and the letter went out on time. Margaret is also the lucky one, because her practice had staff who could file the appeal.</div>
+</section>
+
+<!-- 12 · JOURNEY DIAGRAM -->
+<section class="slide">
+  <div class="eyebrow" style="margin-bottom:10px"><span class="tag">2</span>Service Design · same request, same records</div>
+  <figure>
+    <svg viewBox="0 0 1112 372" role="img" aria-label="Two timelines for the same prior authorization request. Today: request in day 0, nurse review day 2, denied day 7, appeal filed day 15, overturned day 43, MRI day 50. With evidence assembled before the medical director's review: request in day 0, nurse review day 2, approved day 5, MRI day 13. Thirty-seven days and one appeal never happen.">
+      <defs>
+        <marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9a4a1f"/></marker>
+        <marker id="ahg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1f6b52"/></marker>
+      </defs>
+      <text x="0" y="58" font-size="19" font-weight="700" fill="#9a4a1f">TODAY</text>
+      <text x="0" y="80" font-size="17" fill="#8a949e">50 days</text>
+      <line x1="130" y1="112" x2="1078" y2="112" stroke="#9a4a1f" stroke-width="4" marker-end="url(#ahr)"/>
+      <g fill="#9a4a1f"><circle cx="130" cy="112" r="7"/><circle cx="168" cy="112" r="7"/><circle cx="263" cy="112" r="7"/><circle cx="415" cy="112" r="7"/><circle cx="947" cy="112" r="7"/></g>
+      <g font-size="17" fill="#14181c">
+        <text x="124" y="82" text-anchor="start">Request in</text>
+        <text x="168" y="146" text-anchor="middle">Nurse review</text>
+        <text x="263" y="82" text-anchor="middle" font-weight="700">Denied</text>
+        <text x="415" y="146" text-anchor="middle">Appeal filed</text>
+        <text x="947" y="82" text-anchor="middle">Overturned</text>
+        <text x="1080" y="146" text-anchor="end" font-weight="700">MRI</text>
+      </g>
+      <g font-size="14" fill="#8a949e">
+        <text x="124" y="100" text-anchor="start">d0</text><text x="168" y="164" text-anchor="middle">d2</text>
+        <text x="263" y="100" text-anchor="middle">d7</text><text x="415" y="164" text-anchor="middle">d15</text>
+        <text x="947" y="100" text-anchor="middle">d43</text><text x="1080" y="164" text-anchor="end">d50</text>
+      </g>
+      <rect x="130" y="196" width="352" height="34" rx="9" fill="#e9f2ee" stroke="#1f6b52" stroke-width="2"/>
+      <text x="306" y="219" text-anchor="middle" font-size="16" font-weight="700" fill="#1f6b52">evidence assembled before the MD reviews it</text>
+      <line x1="200" y1="230" x2="200" y2="278" stroke="#1f6b52" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ahg)"/>
+      <text x="0" y="292" font-size="19" font-weight="700" fill="#1f6b52">WITH THIS</text>
+      <text x="0" y="314" font-size="17" fill="#8a949e">13 days</text>
+      <line x1="392" y1="300" x2="1078" y2="300" stroke="#c9d2cd" stroke-width="2" stroke-dasharray="7 6"/>
+      <text x="735" y="292" text-anchor="middle" font-size="17" fill="#8a949e">37 days that never happen, and an appeal nobody has to file</text>
+      <line x1="130" y1="300" x2="382" y2="300" stroke="#1f6b52" stroke-width="4" marker-end="url(#ahg)"/>
+      <g fill="#1f6b52"><circle cx="130" cy="300" r="7"/><circle cx="168" cy="300" r="7"/><circle cx="225" cy="300" r="7"/></g>
+      <g font-size="17" fill="#14181c">
+        <text x="168" y="334" text-anchor="middle">Nurse review</text>
+        <text x="248" y="264" text-anchor="start" font-weight="700">Approved</text>
+        <text x="384" y="334" text-anchor="start" font-weight="700">MRI</text>
+      </g>
+      <g font-size="14" fill="#8a949e">
+        <text x="168" y="352" text-anchor="middle">d2</text><text x="248" y="282" text-anchor="start">d5</text><text x="384" y="352" text-anchor="start">d13</text>
+      </g>
+    </svg>
+    <figcaption>The member does nothing different. The provider sends the same packet. The nurse applies the same criteria and routes the case the same way, and the medical director still makes the call. What changes is what is on his screen when he makes it.</figcaption>
+  </figure>
+</section>
+
+<!-- 13 · WHAT CHANGES -->
+<section class="slide top" style="padding-top:52px">
+  <div class="eyebrow"><span class="tag">2</span>Service Design · what the redesign touches</div>
+  <h2 class="sm">Almost nothing, which is why it can ship.</h2>
+  <table class="compact">
+    <tr><th>&nbsp;</th><th style="width:270px">Today</th><th style="width:290px">With the assistant</th></tr>
+    <tr><td>What the member does</td><td>—</td><td>Nothing different</td></tr>
+    <tr><td>What the provider submits</td><td>14-page fax</td><td>The same 14-page fax</td></tr>
+    <tr><td>Nurse review</td><td>Applies criteria, routes</td><td>Unchanged</td></tr>
+    <tr><td>Who makes the decision</td><td>Medical director</td><td>Medical director</td></tr>
+    <tr class="hi"><td>What that person sees</td><td>An unsorted fax</td><td>Assembled evidence, every claim sourced</td></tr>
+    <tr><td>Clinical reviews of the case</td><td>2</td><td>1</td></tr>
+  </table>
+  <p style="margin-top:18px; font-size:24px; color:var(--ink)">Nobody's job changes. One person's screen does.</p>
+</section>
+
+<!-- 14 · CASCADE -->
+<section class="slide top" style="padding-top:46px">
+  <div class="eyebrow"><span class="tag">3</span>Prototype · where the AI sits in the design</div>
+  <h2 class="sm" style="margin-bottom:14px">The criterion has two halves. Only one of them can be answered without reading.</h2>
+  <table class="compact">
+    <tr><th style="width:80px">Layer</th><th>The question it answers</th><th style="width:340px">How certain</th></tr>
+    <tr><td><strong>1</strong></td><td>Claims history<span class="sub">Did Humana pay for therapy, and across how many weeks?</span></td><td><strong style="color:var(--accent)">Certain</strong><span class="sub">A paid claim is a transaction record</span></td></tr>
+    <tr><td><strong>2</strong></td><td>Structured fields<span class="sub">Prior imaging, red flags, active medications</span></td><td><strong style="color:var(--accent)">Certain</strong><span class="sub">Deterministic lookup</span></td></tr>
+    <tr class="hi"><td><strong>3</strong></td><td>Language model reads the narrative<span class="sub" style="color:#4a545e">Did the patient get better?</span></td><td><strong>A reading</strong><span class="sub" style="color:#4a545e">So it must quote text we verify against the source</span></td></tr>
+  </table>
+  <p style="margin-top:16px; font-size:23px; color:var(--ink)">L34220 needs a four-week trial <em>and</em> that the patient did not respond to it. Layers 1 and 2 are certain, and they are <strong>silent on the second half</strong> — there is no field anywhere that records whether someone got better. That sits in prose, in a different document every time. <strong>Running the certain layers first is cheaper and narrows what the model has to find.</strong></p>
+</section>
+
+<!-- 15 · CONSTRAINTS -->
+<section class="slide top" style="padding-top:48px">
+  <div class="eyebrow"><span class="tag">3</span>Prototype · four things it is not allowed to do</div>
+  <ul class="pts" style="margin-top:8px">
+    <li><b>It cannot deny.</b> There is no code path from the model to an adverse determination. Not a setting anyone could change later, absent from the architecture.</li>
+    <li><b>It cannot quote something that is not there.</b> Every quote is checked by exact string match against the source before display. Plain string comparison, no model involved. Failures are dropped.</li>
+    <li><b>It cannot settle a disagreement.</b> When the claims layer and the narrative layer contradict each other, both appear, marked as conflicting. The clinician decides.</li>
+    <li><b>It cannot imply a denial by going quiet.</b> The empty state reads "no supporting evidence identified in the submitted record. This is not a coverage recommendation."</li>
+  </ul>
+</section>
+
+<!-- 16 · DEMO -->
+<section class="slide demo">
+  <div class="eyebrow"><span class="tag">3</span>Working Prototype · live</div>
+  <h1 style="font-size:54px">Three cases</h1>
+  <div class="cases">
+    <div class="case">
+      <div class="n">One</div><div class="h">Margaret</div>
+      <div class="b">Claims prove the therapy happened. Page 9 proves it did not work. Two conditions, two different layers.</div>
+    </div>
+    <div class="case" style="border-color:#7fd0b0">
+      <div class="n">Two</div><div class="h">Robert Cheng</div>
+      <div class="b">21 paid therapy claims, all coded to a knee replacement. Claims layer right, model wrong, and the screen shows you both.</div>
+    </div>
+    <div class="case">
+      <div class="n">Three</div><div class="h">Dolores Ramírez</div>
+      <div class="b">Nothing in the record to find, and the system says so in words that cannot be read as advice to deny.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 16 · WHAT THE PROTOTYPE PROVES -->
+<section class="slide top" style="padding-top:44px">
+  <div class="eyebrow"><span class="tag">3</span>Prototype · what it does and does not tell you</div>
+  <h2 class="sm" style="margin-bottom:14px">Synthetic cases, real criteria, real model output. And 34 cases proves nothing on its own.</h2>
+  <table class="compact" style="margin-bottom:14px">
+    <tr><td style="width:280px"><strong>Case data</strong></td><td>Synthetic. No PHI, no real members or providers</td></tr>
+    <tr><td><strong>Coverage criteria</strong></td><td>Real — quoted verbatim from CMS LCD L34220</td></tr>
+    <tr><td><strong>The findings you just saw</strong></td><td>Genuine model output, cached so a live demo can't fail</td></tr>
+    <tr><td><strong>Risk scoring</strong></td><td>Rule-based. I don't have Humana's appeal history, so nothing here is trained</td></tr>
+  </table>
+  <figure style="margin-top:2px">
+    <svg viewBox="0 0 900 118" role="img" aria-label="Recall on the prototype is 83 percent, but the 95 percent Wilson confidence interval at n equals 6 runs from 44 percent to 97 percent — almost the entire range.">
+      <line x1="40" y1="86" x2="840" y2="86" stroke="#dedad3" stroke-width="2"/>
+      <g font-size="14" fill="#8a949e" text-anchor="middle">
+        <text x="40" y="108">0%</text><text x="240" y="108">25%</text><text x="440" y="108">50%</text><text x="640" y="108">75%</text><text x="840" y="108">100%</text>
+      </g>
+      <g stroke="#dedad3" stroke-width="2">
+        <line x1="40" y1="80" x2="40" y2="92"/><line x1="240" y1="80" x2="240" y2="92"/><line x1="440" y1="80" x2="440" y2="92"/><line x1="640" y1="80" x2="640" y2="92"/><line x1="840" y1="80" x2="840" y2="92"/>
+      </g>
+      <rect x="392" y="44" width="424" height="26" rx="6" fill="#e9f2ee" stroke="#1f6b52" stroke-width="2"/>
+      <line x1="704" y1="38" x2="704" y2="76" stroke="#1f6b52" stroke-width="5"/>
+      <text x="704" y="28" text-anchor="middle" font-size="17" font-weight="700" fill="#1f6b52">83% recall</text>
+      <text x="392" y="63" text-anchor="start" dx="8" font-size="15" fill="#4a545e">44%</text>
+      <text x="816" y="63" text-anchor="end" dx="-8" font-size="15" fill="#4a545e">97%</text>
+      <text x="860" y="63" text-anchor="start" font-size="15" fill="#8a949e"></text>
+    </svg>
+    <figcaption><strong>95% Wilson interval, n = 6.</strong> The point estimate is 83%. The interval covers almost the whole range, which is the honest way to say that six cases tell you nothing. Detecting a five-point difference between subgroups needs roughly 2,000.</figcaption>
+  </figure>
+</section>
+
+<!-- 17 · ROADMAP -->
+<section class="slide top" style="padding-top:44px">
+  <div class="eyebrow"><span class="tag">4</span>Product Roadmap · sequencing</div>
+  <h2 class="sm" style="margin-bottom:14px">Each phase is gated by what actually blocks it.</h2>
+  <table class="compact">
+    <tr><th style="width:172px">Phase</th><th style="width:160px">Blocked by</th><th>Why that is the real constraint</th></tr>
+    <tr><td><strong>0</strong> Gold set</td><td>People</td><td>333 clinician-hours. Two physicians at 20% time is 21 weeks; four at 25% is 8. That is the schedule</td></tr>
+    <tr><td><strong>1</strong> Shadow mode</td><td>Volume</td><td>Cases have to accumulate before any measurement is readable</td></tr>
+    <tr><td><strong>2</strong> Assist</td><td>Behaviour</td><td>Override data has to exist before anyone can trust the system</td></tr>
+    <tr><td><strong>3</strong> Expand</td><td>People again</td><td>Gold-set cost per service line, not engineering capacity</td></tr>
+    <tr><td><strong>4</strong> Learn</td><td>Labels</td><td>Physician-adjudicated labels. Never appeal outcomes</td></tr>
+  </table>
+  <p style="margin-top:16px; font-size:22px; color:var(--ink-soft)">Design comes in at phase 1, not phase 2. Phase 0 also includes a capability assessment against Cohere, who already run diagnostic imaging prior auth here.</p>
+</section>
+
+<!-- 18 · NORTH STAR -->
+<section class="slide top" style="padding-top:50px">
+  <div class="eyebrow"><span class="tag">4</span>Product Roadmap · north star</div>
+  <h2 class="sm">First-decision accuracy</h2>
+  <p style="color:var(--ink); font-size:26px">The share of first decisions that hold up on independent re-review — measured against the <strong>complete retrievable record</strong>, everything Humana can reach, not only the pages that happened to arrive with the request.</p>
+  <ul class="pts" style="margin-top:24px">
+    <li><b>Measurable from phase 4.</b> It needs the physician-adjudicated audit set, which is why that is funded in phase 0 rather than later.</li>
+    <li><b>Evidence completeness is the phase 1 proxy</b> — how much of the retrievable support was actually in front of the reviewer.</li>
+    <li><b>If completeness climbs and accuracy does not follow</b>, the premise is wrong and phase 3 should not happen.</li>
+  </ul>
+</section>
+
+<!-- 19 · BASELINE -->
+<section class="slide top" style="padding-top:62px">
+  <div class="eyebrow"><span class="tag">4</span>Product Roadmap · the cheapest test available</div>
+  <h2 class="sm">One number, available this quarter, before anything gets built.</h2>
+  <div class="note g" style="font-size:27px; margin-top:6px">Of the denials Humana overturned last quarter, what share turned on evidence <strong>already in Humana's possession</strong> when the first decision was made?</div>
+  <p style="margin-top:22px; font-size:25px; color:var(--ink)">No audit set. No model. The appeal files already exist.</p>
+  <p style="margin-top:14px; font-size:23px">It is built on appeals, so it inherits the same bias as everything else here. That makes it a test of the premise rather than a performance metric — and it either supports building this or kills it in two weeks.</p>
+</section>
+
+<!-- 20 · THE COST -->
+<section class="slide top" style="padding-top:60px">
+  <div class="eyebrow"><span class="tag">5</span>Key Tradeoff · what I gave up</div>
+  <h2>This system can only argue for approval. It has no way to argue for denial.</h2>
+  <p>A tool that surfaced evidence in both directions would also help on cases that genuinely should be denied. That capability is given up deliberately, and giving it up is what makes the product safe to put in front of a clinician.</p>
+  <div class="note">It also costs money. Most wrongly denied members never appeal, so today Humana does not pay for that care. <strong>Getting more of those first decisions right means paying for care Humana currently does not.</strong></div>
+</section>
+
+<!-- 21 · WHAT PAYS FOR IT -->
+<section class="slide top" style="padding-top:40px">
+  <div class="eyebrow"><span class="tag">5</span>Key Tradeoff · what pays for it</div>
+  <h2 class="sm" style="margin-bottom:12px">The 1,300 split into two groups, and they pay back differently.</h2>
+  <figure>
+    <svg viewBox="0 0 1112 330" role="img" aria-label="Of 1300 wrongly denied requests per ten thousand denials, about 120 are appealed and overturned today. Correcting those at the first decision avoids a full appeal cycle at no extra medical cost, a strong effect. About 1180 are never appealed. Correcting those means paying for care not paid for today, which raises medical spend but improves the CAHPS Getting Needed Care measure, a weaker and slower link.">
+      <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4a545e"/></marker></defs>
+
+      <rect x="0" y="130" width="176" height="70" rx="10" fill="#fff" stroke="#14181c" stroke-width="3"/>
+      <text x="88" y="160" text-anchor="middle" font-size="27" font-weight="700" fill="#14181c">1,300</text>
+      <text x="88" y="182" text-anchor="middle" font-size="15" fill="#4a545e">wrongly denied</text>
+
+      <line x1="176" y1="150" x2="252" y2="72" stroke="#4a545e" stroke-width="2" marker-end="url(#a2)"/>
+      <line x1="176" y1="180" x2="252" y2="252" stroke="#4a545e" stroke-width="2" marker-end="url(#a2)"/>
+
+      <rect x="256" y="34" width="200" height="74" rx="10" fill="#e9f2ee" stroke="#1f6b52" stroke-width="3"/>
+      <text x="356" y="64" text-anchor="middle" font-size="25" font-weight="700" fill="#1f6b52">~120</text>
+      <text x="356" y="88" text-anchor="middle" font-size="15" fill="#4a545e">appeal today, and win</text>
+
+      <rect x="256" y="216" width="200" height="74" rx="10" fill="#faeee6" stroke="#9a4a1f" stroke-width="3"/>
+      <text x="356" y="246" text-anchor="middle" font-size="25" font-weight="700" fill="#9a4a1f">~1,180</text>
+      <text x="356" y="270" text-anchor="middle" font-size="15" fill="#4a545e">never appeal today</text>
+
+      <line x1="456" y1="71" x2="536" y2="71" stroke="#4a545e" stroke-width="2" marker-end="url(#a2)"/>
+      <line x1="456" y1="253" x2="536" y2="253" stroke="#4a545e" stroke-width="2" marker-end="url(#a2)"/>
+
+      <rect x="540" y="34" width="284" height="74" rx="10" fill="#fff" stroke="#dedad3" stroke-width="2"/>
+      <text x="556" y="62" font-size="17" font-weight="700" fill="#14181c">Appeal cycle never happens</text>
+      <text x="556" y="88" font-size="15" fill="#4a545e">Care was going to be paid either way</text>
+
+      <rect x="540" y="210" width="284" height="86" rx="10" fill="#fff" stroke="#dedad3" stroke-width="2"/>
+      <text x="556" y="236" font-size="17" font-weight="700" fill="#14181c">Evidence reaches the reviewer</text>
+      <text x="556" y="260" font-size="15" fill="#4a545e">Those who qualify are approved</text>
+      <text x="556" y="282" font-size="15" fill="#9a4a1f">Humana pays for that care</text>
+
+      <line x1="824" y1="71" x2="904" y2="71" stroke="#4a545e" stroke-width="2" marker-end="url(#a2)"/>
+      <line x1="824" y1="253" x2="904" y2="253" stroke="#4a545e" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a2)"/>
+
+      <rect x="908" y="34" width="204" height="74" rx="10" fill="#e9f2ee" stroke="#1f6b52" stroke-width="3"/>
+      <text x="1010" y="60" text-anchor="middle" font-size="17" font-weight="700" fill="#1f6b52">Net saving</text>
+      <text x="1010" y="84" text-anchor="middle" font-size="15" fill="#4a545e">direct, measurable</text>
+
+      <rect x="908" y="216" width="204" height="74" rx="10" fill="#fff" stroke="#1f6b52" stroke-width="2" stroke-dasharray="6 5"/>
+      <text x="1010" y="242" text-anchor="middle" font-size="17" font-weight="700" fill="#1f6b52">Getting Needed Care *</text>
+      <text x="1010" y="266" text-anchor="middle" font-size="15" fill="#4a545e">CAHPS → Stars → bonus</text>
+    </svg>
+    <figcaption>The same group is both the cost and the return. CMS built <em>Getting Needed Care</em> to make plans pay for care members qualify for, so on that measure this spend is the mechanism working rather than a leak.<br><span style="font-size:19px">* Dashed because I cannot prove it yet. Attribution from one service line to a survey score is the weakest number in this deck and I would want Humana's actuaries on it.</span></figcaption>
+  </figure>
+</section>
+
+<!-- 22 · WHY THE TRADE -->
+<section class="slide top" style="padding-top:70px">
+  <div class="eyebrow"><span class="tag">5</span>Key Tradeoff · the reasoning</div>
+  <table style="margin-bottom:30px">
+    <tr><th>When the system is wrong</th><th style="width:420px">What it costs</th></tr>
+    <tr><td>It surfaces support for an approval that does not hold up</td><td>A few minutes of a clinician's time</td></tr>
+    <tr><td>It surfaced support for a denial that did not hold up</td><td><strong style="color:var(--warn)">Someone loses care they were entitled to</strong></td></tr>
+  </table>
+  <p style="font-size:30px; color:var(--ink)">No threshold makes those two costs the same size.<br><strong>Asymmetric errors, asymmetric tool.</strong></p>
+</section>
+
+<!-- 23 · CLOSE -->
+<section class="slide top" style="padding-top:50px">
+  <div class="eyebrow">First 90 days</div>
+  <h2 class="sm">Every claim in this deck has a test attached. Here is the order I would run them in.</h2>
+  <table class="compact">
+    <tr><td style="width:190px"><strong>Weeks 1–2</strong></td><td>Run the overturn baseline against existing appeal files. Sit with three reviewers and watch them work. Capability assessment against Cohere</td></tr>
+    <tr><td><strong>Weeks 3–10</strong></td><td>Build the gold set with two to four physicians. This is the long pole and it is a staffing decision, not an engineering one</td></tr>
+    <tr class="hi"><td><strong>Weeks 11–13</strong></td><td>Shadow mode on lumbar MRI. Measure evidence completeness and conflict rate against the gold set</td></tr>
+  </table>
+  <p style="margin-top:22px; font-size:26px; color:var(--ink)">Three checkpoints in ninety days, each one capable of stopping the project. <strong>The first costs a query against data Humana already has.</strong></p>
+</section>
+
+</div></div>
+
+<div id="num"></div>
+<div id="timer">00:00</div>
+<div id="notes"></div>
+<div id="help">← → to move · <b>F</b> fullscreen · <b>T</b> timer · <b>N</b> notes · <b>Home</b> reset</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0, deck = document.getElementById('deck');
+  var numEl = document.getElementById('num'), timerEl = document.getElementById('timer');
+  var notesEl = document.getElementById('notes'), helpEl = document.getElementById('help');
+
+  var NOTES = {
+    0:"<b>~20s.</b> Say the subtitle out loud. Don't just let them read it.",
+    1:"<b>~30s.</b> The map. Tells them you're answering the brief, not freestyling. Move fast.",
+    2:"<b>~60s.</b> Don't walk all five rows. Name B and D as the tempting ones, land on C. The three tests are the judgment. <b>If asked what changed along the way:</b> started with scoring denials on overturn likelihood, dropped it because appeal outcomes predict who fights, not who's right.",
+    3:"<b>~75s.</b> Let the grey block sit. Point at it. This is the problem, nothing else.",
+    4:"<b>~45s.</b> Do the division for them before anyone does it to you. The point is absolute volume, not who's nicer.",
+    5:"<b>~60s.</b> Speed and accuracy both public, both new. The opening didn't exist 18 months ago.",
+    6:"<b>~45s.</b> Target audience. The regulation is why this user exists. No new approver, no new step.",
+    7:"<b>~60s.</b> Say 'most denials are correct' out loud. Then the 13% ceiling and the third-of-it floor. Volunteer both.",
+    8:"<b>~90s. Slow down.</b> Read the days. Don't editorialise.",
+    9:"<b>~60s.</b> 'Nobody made a mistake' makes this a system problem, not a people problem.",
+    10:"<b>~90s.</b> Point at the gap on the bottom lane. Read the caption almost verbatim.",
+    11:"<b>~45s.</b> The last line is the one that matters to an engineering director.",
+    12:"<b>~90s. Highest-scoring section against the brief.</b> Certain-but-incomplete, then the half nothing can query. <b>If asked why not just use claims:</b> claims are certain and silent on non-response.",
+    13:"<b>~75s.</b> 'Absent from the architecture' is the phrase they'll notice.",
+    14:"<b>8 minutes. PROTECT THIS.</b> Margaret 2.5 · Cheng 3 · Ramírez 2. Switch tabs now.",
+    15:"<b>~60s.</b> Say the provenance precisely — overstating the prototype is the one thing that could actually damage you. Then the interval: you're using statistics to show why you don't trust your own number.",
+    16:"<b>~75s.</b> Constraints, not week counts. Cohere line: flat, in passing, no emphasis.",
+    17:"<b>~75s.</b> Say 'complete retrievable record' exactly. The third bullet is the falsifiable one.",
+    18:"<b>~60s.</b> The cheapest test available. Most candidates present metrics that can't fail.",
+    19:"<b>~60s.</b> Name the cost before they find it, then go straight on.",
+    20:"<b>~75s.</b> Top branch first — clean saving. Then the bottom. Say the asterisk yourself before anyone asks.",
+    21:"<b>~45s.</b> Deliver the last line slowly.",
+    22:"<b>~45s. Then stop talking.</b> Three checkpoints, each can kill it, the first is nearly free."
+  };
+
+  function fit(){ deck.style.transform = 'scale(' + (Math.min(window.innerWidth/1280, window.innerHeight/720)*0.965) + ')'; }
+  function show(n){
+    if(n<0) n=0; if(n>=slides.length) n=slides.length-1;
+    slides[i].classList.remove('on'); i=n; slides[i].classList.add('on');
+    numEl.textContent = (i+1)+' / '+slides.length;
+    notesEl.innerHTML = NOTES[i] || '<span style="color:#5b6570">—</span>';
+  }
+  document.addEventListener('keydown', function(e){
+    var k=e.key;
+    if(k==='ArrowRight'||k==='ArrowDown'||k===' '||k==='PageDown'){ e.preventDefault(); show(i+1); }
+    else if(k==='ArrowLeft'||k==='ArrowUp'||k==='PageUp'){ e.preventDefault(); show(i-1); }
+    else if(k==='Home'){ show(0); } else if(k==='End'){ show(slides.length-1); }
+    else if(k==='f'||k==='F'){ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); }
+    else if(k==='n'||k==='N'){ notesEl.classList.toggle('on'); }
+    else if(k==='t'||k==='T'){ toggleTimer(); }
+  });
+  deck.addEventListener('click', function(){ show(i+1); });
+
+  var t0=null, tick=null;
+  function toggleTimer(){
+    if(timerEl.classList.contains('on')){ timerEl.classList.remove('on'); clearInterval(tick); t0=null; }
+    else { timerEl.classList.add('on'); t0=Date.now();
+      tick=setInterval(function(){
+        var s=Math.floor((Date.now()-t0)/1000), m=Math.floor(s/60);
+        timerEl.textContent=String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+        timerEl.style.color = m>=27 ? '#ff8f6b' : (m>=24 ? '#ffd479' : '#7fd0b0');
+      },500);
+    }
+  }
+  window.addEventListener('resize', fit);
+  fit(); show(0);
+  setTimeout(function(){ helpEl.classList.add('hide'); }, 5000);
+})();
+</script>
+</body>
+</html>

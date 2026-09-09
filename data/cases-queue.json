@@ -1,0 +1,1419 @@
+{
+  "_note": "Synthetic queue cases supporting the three hero cases in cases-hero.json. Composition is fixed and documented in generate_queue.py, not randomly drawn, so the flag rate and the model's error profile are both defensible.",
+  "calibration": {
+    "anchor": "HHS OIG, April 2022: 13% of denied MA prior authorization requests met Medicare coverage rules.",
+    "anchorUrl": "https://oig.hhs.gov/reports/all/2022/some-medicare-advantage-organization-denials-of-prior-authorization-requests-raise-concerns-about-beneficiary-access-to-medically-necessary-care/",
+    "trueSupportRate": 0.176
+  },
+  "modelPerformance": {
+    "truePositives": 5,
+    "falsePositives": 1,
+    "falseNegatives": 1,
+    "trueNegatives": 25,
+    "precision": 0.833,
+    "recall": 0.833,
+    "note": "Deliberately imperfect. One false positive (unrelated therapy episode) and one false negative (illegible scanned note)."
+  },
+  "totals": {
+    "queueCases": 31,
+    "heroCases": 3,
+    "total": 34
+  },
+  "cases": [
+    {
+      "id": "PA-2026-115291",
+      "scenario": "genuinely_no_conservative",
+      "member": {
+        "name": "Josephine Brennan",
+        "age": 68,
+        "sex": "F",
+        "memberId": "H740406463",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72158",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M51.36",
+          "description": "Other intervertebral disc degeneration, lumbar region"
+        },
+        "requestingProvider": "Ingrid Halvorsen, MD",
+        "specialty": "Neurology",
+        "facility": "Summit Neurology Associates",
+        "submittedDate": "2026-08-31",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 3,
+        "totalPages": 24,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115375",
+      "scenario": "conservative_mgmt_in_chart",
+      "member": {
+        "name": "Harold Petrov",
+        "age": 83,
+        "sex": "M",
+        "memberId": "H879854078",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72149",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.16",
+          "description": "Radiculopathy, lumbar region"
+        },
+        "requestingProvider": "Aaron Whitfield, MD",
+        "specialty": "Family Medicine",
+        "facility": "Northgate Family Health",
+        "submittedDate": "2026-08-28",
+        "urgency": "expedited"
+      },
+      "review": {
+        "status": "nurse_approved",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Six-week PT course documented directly in the referring physician note with dates and outcome. C2 satisfied on the face of the submission.",
+        "proposedAction": "approve"
+      },
+      "documentBundle": {
+        "documentCount": 5,
+        "totalPages": 34,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": true,
+        "correctAction": "approve",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115284",
+      "scenario": "genuinely_no_conservative",
+      "member": {
+        "name": "Ernest Ferraro",
+        "age": 84,
+        "sex": "M",
+        "memberId": "H775348320",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M48.061",
+          "description": "Spinal stenosis, lumbar region without neurogenic claudication"
+        },
+        "requestingProvider": "Daniel Restrepo, MD",
+        "specialty": "Family Medicine",
+        "facility": "Riverbend Community Health",
+        "submittedDate": "2026-08-25",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "K. Osei, RN",
+        "nurseNote": "Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 2,
+        "totalPages": 41,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115347",
+      "scenario": "uncomplicated_ddd",
+      "member": {
+        "name": "Linh Vargas",
+        "age": 68,
+        "sex": "F",
+        "memberId": "H806327456",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72149",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M51.36",
+          "description": "Other intervertebral disc degeneration, lumbar region"
+        },
+        "requestingProvider": "Ingrid Halvorsen, MD",
+        "specialty": "Neurology",
+        "facility": "Summit Neurology Associates",
+        "submittedDate": "2026-08-22",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "M. Tran, RN",
+        "nurseNote": "Known degenerative disc disease, clinically stable, no surgical or interventional decision pending (C4).",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 6,
+        "totalPages": 5,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115200",
+      "scenario": "buried_pt_outside_records",
+      "member": {
+        "name": "Leonard Ferraro",
+        "age": 71,
+        "sex": "M",
+        "memberId": "H974828856",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72158",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.16",
+          "description": "Radiculopathy, lumbar region"
+        },
+        "requestingProvider": "Susan Yeoh, DO",
+        "specialty": "Physical Medicine & Rehab",
+        "facility": "Cascade Spine Institute",
+        "submittedDate": "2026-08-21",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "K. Osei, RN",
+        "nurseNote": "Therapy discharge summary present in unitemized outside-records packet; referring note references prior treatment without dates or duration.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 2,
+        "totalPages": 37,
+        "hasUnitemizedOutsideRecords": true
+      },
+      "groundTruth": {
+        "criteriaMet": true,
+        "correctAction": "approve",
+        "shouldFlag": true
+      },
+      "modelBehavior": {
+        "flags": true
+      }
+    },
+    {
+      "id": "PA-2026-115354",
+      "scenario": "uncomplicated_ddd",
+      "member": {
+        "name": "Yolanda Castellanos",
+        "age": 82,
+        "sex": "F",
+        "memberId": "H785465749",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 1
+      },
+      "request": {
+        "cpt": "72158",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.16",
+          "description": "Radiculopathy, lumbar region"
+        },
+        "requestingProvider": "Daniel Restrepo, MD",
+        "specialty": "Family Medicine",
+        "facility": "Riverbend Community Health",
+        "submittedDate": "2026-08-21",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Known degenerative disc disease, clinically stable, no surgical or interventional decision pending (C4).",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 5,
+        "totalPages": 11,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115256",
+      "scenario": "genuinely_no_conservative",
+      "member": {
+        "name": "Clarence Thistlewood",
+        "age": 84,
+        "sex": "M",
+        "memberId": "H772873756",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.16",
+          "description": "Radiculopathy, lumbar region"
+        },
+        "requestingProvider": "Susan Yeoh, DO",
+        "specialty": "Physical Medicine & Rehab",
+        "facility": "Cascade Spine Institute",
+        "submittedDate": "2026-08-24",
+        "urgency": "expedited"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 3,
+        "totalPages": 15,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115214",
+      "scenario": "buried_pt_outside_records",
+      "member": {
+        "name": "Arturo Ibarra",
+        "age": 81,
+        "sex": "M",
+        "memberId": "H702466260",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72149",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M51.36",
+          "description": "Other intervertebral disc degeneration, lumbar region"
+        },
+        "requestingProvider": "Priya Raghunathan, MD",
+        "specialty": "Internal Medicine",
+        "facility": "Lakeshore Internal Medicine",
+        "submittedDate": "2026-08-26",
+        "urgency": "expedited"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "K. Osei, RN",
+        "nurseNote": "Therapy discharge summary present in unitemized outside-records packet; referring note references prior treatment without dates or duration.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 4,
+        "totalPages": 23,
+        "hasUnitemizedOutsideRecords": true
+      },
+      "groundTruth": {
+        "criteriaMet": true,
+        "correctAction": "approve",
+        "shouldFlag": true
+      },
+      "modelBehavior": {
+        "flags": true
+      }
+    },
+    {
+      "id": "PA-2026-115207",
+      "scenario": "buried_pt_outside_records",
+      "member": {
+        "name": "Doris Duval",
+        "age": 71,
+        "sex": "F",
+        "memberId": "H708053456",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.50",
+          "description": "Low back pain, unspecified"
+        },
+        "requestingProvider": "Susan Yeoh, DO",
+        "specialty": "Physical Medicine & Rehab",
+        "facility": "Cascade Spine Institute",
+        "submittedDate": "2026-08-23",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Therapy discharge summary present in unitemized outside-records packet; referring note references prior treatment without dates or duration.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 2,
+        "totalPages": 32,
+        "hasUnitemizedOutsideRecords": true
+      },
+      "groundTruth": {
+        "criteriaMet": true,
+        "correctAction": "approve",
+        "shouldFlag": true
+      },
+      "modelBehavior": {
+        "flags": true
+      }
+    },
+    {
+      "id": "PA-2026-115270",
+      "scenario": "genuinely_no_conservative",
+      "member": {
+        "name": "Desmond Thistlewood",
+        "age": 89,
+        "sex": "M",
+        "memberId": "H736923900",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M48.061",
+          "description": "Spinal stenosis, lumbar region without neurogenic claudication"
+        },
+        "requestingProvider": "Susan Yeoh, DO",
+        "specialty": "Physical Medicine & Rehab",
+        "facility": "Cascade Spine Institute",
+        "submittedDate": "2026-08-28",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 6,
+        "totalPages": 7,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115361",
+      "scenario": "uncomplicated_ddd",
+      "member": {
+        "name": "Arturo Petrov",
+        "age": 83,
+        "sex": "M",
+        "memberId": "H969858377",
+        "plan": "Medicare Advantage PPO",
+        "language": "Spanish",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72149",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M51.36",
+          "description": "Other intervertebral disc degeneration, lumbar region"
+        },
+        "requestingProvider": "Ingrid Halvorsen, MD",
+        "specialty": "Neurology",
+        "facility": "Summit Neurology Associates",
+        "submittedDate": "2026-08-30",
+        "urgency": "expedited"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "K. Osei, RN",
+        "nurseNote": "Known degenerative disc disease, clinically stable, no surgical or interventional decision pending (C4).",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 2,
+        "totalPages": 16,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115221",
+      "scenario": "buried_nsaid_trial",
+      "member": {
+        "name": "Carmen Mbeki",
+        "age": 78,
+        "sex": "F",
+        "memberId": "H757876348",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72149",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.50",
+          "description": "Low back pain, unspecified"
+        },
+        "requestingProvider": "Aaron Whitfield, MD",
+        "specialty": "Family Medicine",
+        "facility": "Northgate Family Health",
+        "submittedDate": "2026-08-20",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "K. Osei, RN",
+        "nurseNote": "Medication list documents an NSAID trial exceeding four weeks with documented non-response; not carried into the clinical narrative.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 3,
+        "totalPages": 16,
+        "hasUnitemizedOutsideRecords": true
+      },
+      "groundTruth": {
+        "criteriaMet": true,
+        "correctAction": "approve",
+        "shouldFlag": true
+      },
+      "modelBehavior": {
+        "flags": true
+      }
+    },
+    {
+      "id": "PA-2026-115298",
+      "scenario": "duplicative_imaging",
+      "member": {
+        "name": "Walter Moreau",
+        "age": 79,
+        "sex": "M",
+        "memberId": "H716250898",
+        "plan": "Medicare Advantage PPO",
+        "language": "Vietnamese",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72158",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.50",
+          "description": "Low back pain, unspecified"
+        },
+        "requestingProvider": "Susan Yeoh, DO",
+        "specialty": "Physical Medicine & Rehab",
+        "facility": "Cascade Spine Institute",
+        "submittedDate": "2026-08-29",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "M. Tran, RN",
+        "nurseNote": "Prior lumbar MRI within 90 days. No documented interval change in symptoms or examination (C3).",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 6,
+        "totalPages": 3,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115263",
+      "scenario": "genuinely_no_conservative",
+      "member": {
+        "name": "Marguerite Achebe",
+        "age": 81,
+        "sex": "F",
+        "memberId": "H742143191",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 1
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.50",
+          "description": "Low back pain, unspecified"
+        },
+        "requestingProvider": "Marcus Bell, MD",
+        "specialty": "Orthopedic Surgery",
+        "facility": "Cascade Valley Orthopedics",
+        "submittedDate": "2026-08-21",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "M. Tran, RN",
+        "nurseNote": "Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 3,
+        "totalPages": 28,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115305",
+      "scenario": "duplicative_imaging",
+      "member": {
+        "name": "Gloria Brennan",
+        "age": 79,
+        "sex": "F",
+        "memberId": "H877247867",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72158",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M48.061",
+          "description": "Spinal stenosis, lumbar region without neurogenic claudication"
+        },
+        "requestingProvider": "Ingrid Halvorsen, MD",
+        "specialty": "Neurology",
+        "facility": "Summit Neurology Associates",
+        "submittedDate": "2026-08-27",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Prior lumbar MRI within 90 days. No documented interval change in symptoms or examination (C3).",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 2,
+        "totalPages": 36,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115235",
+      "scenario": "distractor_wrong_context",
+      "member": {
+        "name": "Marguerite Nakamura",
+        "age": 71,
+        "sex": "F",
+        "memberId": "H801138678",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72158",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.16",
+          "description": "Radiculopathy, lumbar region"
+        },
+        "requestingProvider": "Aaron Whitfield, MD",
+        "specialty": "Family Medicine",
+        "facility": "Northgate Family Health",
+        "submittedDate": "2026-08-31",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "M. Tran, RN",
+        "nurseNote": "Therapy records present but directed at a different body region and a separate episode of care.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 5,
+        "totalPages": 10,
+        "hasUnitemizedOutsideRecords": true
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": true
+      }
+    },
+    {
+      "id": "PA-2026-115277",
+      "scenario": "genuinely_no_conservative",
+      "member": {
+        "name": "Raymond Petrov",
+        "age": 80,
+        "sex": "M",
+        "memberId": "H833715233",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.16",
+          "description": "Radiculopathy, lumbar region"
+        },
+        "requestingProvider": "Ingrid Halvorsen, MD",
+        "specialty": "Neurology",
+        "facility": "Summit Neurology Associates",
+        "submittedDate": "2026-08-24",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 3,
+        "totalPages": 8,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115249",
+      "scenario": "genuinely_no_conservative",
+      "member": {
+        "name": "Patricia Petrov",
+        "age": 76,
+        "sex": "F",
+        "memberId": "H859088146",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.50",
+          "description": "Low back pain, unspecified"
+        },
+        "requestingProvider": "Susan Yeoh, DO",
+        "specialty": "Physical Medicine & Rehab",
+        "facility": "Cascade Spine Institute",
+        "submittedDate": "2026-08-21",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 3,
+        "totalPages": 3,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115228",
+      "scenario": "missed_buried_evidence",
+      "member": {
+        "name": "Josephine Duval",
+        "age": 86,
+        "sex": "F",
+        "memberId": "H806563579",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72149",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.50",
+          "description": "Low back pain, unspecified"
+        },
+        "requestingProvider": "Ingrid Halvorsen, MD",
+        "specialty": "Neurology",
+        "facility": "Summit Neurology Associates",
+        "submittedDate": "2026-08-24",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "M. Tran, RN",
+        "nurseNote": "Conservative management documented in a handwritten scanned note of poor legibility within the outside packet.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 2,
+        "totalPages": 11,
+        "hasUnitemizedOutsideRecords": true
+      },
+      "groundTruth": {
+        "criteriaMet": true,
+        "correctAction": "approve",
+        "shouldFlag": true
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115326",
+      "scenario": "duplicative_imaging",
+      "member": {
+        "name": "Doris Lindqvist",
+        "age": 67,
+        "sex": "F",
+        "memberId": "H734434368",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.50",
+          "description": "Low back pain, unspecified"
+        },
+        "requestingProvider": "Priya Raghunathan, MD",
+        "specialty": "Internal Medicine",
+        "facility": "Lakeshore Internal Medicine",
+        "submittedDate": "2026-08-27",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "K. Osei, RN",
+        "nurseNote": "Prior lumbar MRI within 90 days. No documented interval change in symptoms or examination (C3).",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 5,
+        "totalPages": 27,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115333",
+      "scenario": "duplicative_imaging",
+      "member": {
+        "name": "Gerald Lindqvist",
+        "age": 80,
+        "sex": "M",
+        "memberId": "H871984567",
+        "plan": "Medicare Advantage HMO",
+        "language": "Spanish",
+        "priorAppeals": 1
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M51.36",
+          "description": "Other intervertebral disc degeneration, lumbar region"
+        },
+        "requestingProvider": "Ingrid Halvorsen, MD",
+        "specialty": "Neurology",
+        "facility": "Summit Neurology Associates",
+        "submittedDate": "2026-08-29",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Prior lumbar MRI within 90 days. No documented interval change in symptoms or examination (C3).",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 4,
+        "totalPages": 39,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115382",
+      "scenario": "conservative_mgmt_in_chart",
+      "member": {
+        "name": "Estelle Abernathy",
+        "age": 89,
+        "sex": "F",
+        "memberId": "H788234899",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72149",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M48.061",
+          "description": "Spinal stenosis, lumbar region without neurogenic claudication"
+        },
+        "requestingProvider": "Susan Yeoh, DO",
+        "specialty": "Physical Medicine & Rehab",
+        "facility": "Cascade Spine Institute",
+        "submittedDate": "2026-08-29",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "nurse_approved",
+        "nurseReviewer": "K. Osei, RN",
+        "nurseNote": "Six-week PT course documented directly in the referring physician note with dates and outcome. C2 satisfied on the face of the submission.",
+        "proposedAction": "approve"
+      },
+      "documentBundle": {
+        "documentCount": 6,
+        "totalPages": 36,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": true,
+        "correctAction": "approve",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115368",
+      "scenario": "uncomplicated_ddd",
+      "member": {
+        "name": "Barbara Brennan",
+        "age": 76,
+        "sex": "F",
+        "memberId": "H840597446",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72149",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.50",
+          "description": "Low back pain, unspecified"
+        },
+        "requestingProvider": "Daniel Restrepo, MD",
+        "specialty": "Family Medicine",
+        "facility": "Riverbend Community Health",
+        "submittedDate": "2026-08-20",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Known degenerative disc disease, clinically stable, no surgical or interventional decision pending (C4).",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 5,
+        "totalPages": 20,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115312",
+      "scenario": "duplicative_imaging",
+      "member": {
+        "name": "Ruth Thistlewood",
+        "age": 88,
+        "sex": "F",
+        "memberId": "H760604639",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72158",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M48.061",
+          "description": "Spinal stenosis, lumbar region without neurogenic claudication"
+        },
+        "requestingProvider": "Aaron Whitfield, MD",
+        "specialty": "Family Medicine",
+        "facility": "Northgate Family Health",
+        "submittedDate": "2026-08-24",
+        "urgency": "expedited"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "M. Tran, RN",
+        "nurseNote": "Prior lumbar MRI within 90 days. No documented interval change in symptoms or examination (C3).",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 4,
+        "totalPages": 12,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115403",
+      "scenario": "red_flag_documented",
+      "member": {
+        "name": "Yolanda Kowalski",
+        "age": 88,
+        "sex": "F",
+        "memberId": "H712233110",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.16",
+          "description": "Radiculopathy, lumbar region"
+        },
+        "requestingProvider": "Marcus Bell, MD",
+        "specialty": "Orthopedic Surgery",
+        "facility": "Cascade Valley Orthopedics",
+        "submittedDate": "2026-08-23",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "nurse_approved",
+        "nurseReviewer": "M. Tran, RN",
+        "nurseNote": "History of malignancy documented in the referring note. Red-flag indication present; the conservative management requirement does not apply (C1).",
+        "proposedAction": "approve"
+      },
+      "documentBundle": {
+        "documentCount": 4,
+        "totalPages": 25,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": true,
+        "correctAction": "approve",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115396",
+      "scenario": "conservative_mgmt_in_chart",
+      "member": {
+        "name": "Walter Sandoval",
+        "age": 78,
+        "sex": "M",
+        "memberId": "H844533052",
+        "plan": "Medicare Advantage HMO",
+        "language": "Mandarin",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72149",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M48.061",
+          "description": "Spinal stenosis, lumbar region without neurogenic claudication"
+        },
+        "requestingProvider": "Aaron Whitfield, MD",
+        "specialty": "Family Medicine",
+        "facility": "Northgate Family Health",
+        "submittedDate": "2026-08-22",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "nurse_approved",
+        "nurseReviewer": "M. Tran, RN",
+        "nurseNote": "Six-week PT course documented directly in the referring physician note with dates and outcome. C2 satisfied on the face of the submission.",
+        "proposedAction": "approve"
+      },
+      "documentBundle": {
+        "documentCount": 6,
+        "totalPages": 23,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": true,
+        "correctAction": "approve",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115410",
+      "scenario": "red_flag_documented",
+      "member": {
+        "name": "Doris Aluko",
+        "age": 82,
+        "sex": "F",
+        "memberId": "H834514963",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72158",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M48.061",
+          "description": "Spinal stenosis, lumbar region without neurogenic claudication"
+        },
+        "requestingProvider": "Aaron Whitfield, MD",
+        "specialty": "Family Medicine",
+        "facility": "Northgate Family Health",
+        "submittedDate": "2026-08-20",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "nurse_approved",
+        "nurseReviewer": "M. Tran, RN",
+        "nurseNote": "History of malignancy documented in the referring note. Red-flag indication present; the conservative management requirement does not apply (C1).",
+        "proposedAction": "approve"
+      },
+      "documentBundle": {
+        "documentCount": 6,
+        "totalPages": 13,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": true,
+        "correctAction": "approve",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115340",
+      "scenario": "uncomplicated_ddd",
+      "member": {
+        "name": "Stanley Achebe",
+        "age": 80,
+        "sex": "M",
+        "memberId": "H801961715",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72149",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.16",
+          "description": "Radiculopathy, lumbar region"
+        },
+        "requestingProvider": "Marcus Bell, MD",
+        "specialty": "Orthopedic Surgery",
+        "facility": "Cascade Valley Orthopedics",
+        "submittedDate": "2026-08-22",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Known degenerative disc disease, clinically stable, no surgical or interventional decision pending (C4).",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 2,
+        "totalPages": 31,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115389",
+      "scenario": "conservative_mgmt_in_chart",
+      "member": {
+        "name": "Hyun Aluko",
+        "age": 66,
+        "sex": "M",
+        "memberId": "H902416556",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72158",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.50",
+          "description": "Low back pain, unspecified"
+        },
+        "requestingProvider": "Priya Raghunathan, MD",
+        "specialty": "Internal Medicine",
+        "facility": "Lakeshore Internal Medicine",
+        "submittedDate": "2026-08-28",
+        "urgency": "expedited"
+      },
+      "review": {
+        "status": "nurse_approved",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Six-week PT course documented directly in the referring physician note with dates and outcome. C2 satisfied on the face of the submission.",
+        "proposedAction": "approve"
+      },
+      "documentBundle": {
+        "documentCount": 6,
+        "totalPages": 10,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": true,
+        "correctAction": "approve",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115242",
+      "scenario": "genuinely_no_conservative",
+      "member": {
+        "name": "Desmond Petrov",
+        "age": 84,
+        "sex": "M",
+        "memberId": "H863286681",
+        "plan": "Medicare Advantage HMO",
+        "language": "English",
+        "priorAppeals": 2
+      },
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M54.16",
+          "description": "Radiculopathy, lumbar region"
+        },
+        "requestingProvider": "Aaron Whitfield, MD",
+        "specialty": "Family Medicine",
+        "facility": "Northgate Family Health",
+        "submittedDate": "2026-08-26",
+        "urgency": "expedited"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "D. Whitlock, RN",
+        "nurseNote": "Symptom onset under four weeks. No conservative management attempted or documented. Imaging requested prior to any trial of therapy.",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 6,
+        "totalPages": 9,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    },
+    {
+      "id": "PA-2026-115319",
+      "scenario": "duplicative_imaging",
+      "member": {
+        "name": "Carmen Sandoval",
+        "age": 73,
+        "sex": "F",
+        "memberId": "H875535647",
+        "plan": "Medicare Advantage PPO",
+        "language": "English",
+        "priorAppeals": 0
+      },
+      "request": {
+        "cpt": "72158",
+        "description": "MRI lumbar spine",
+        "icd10": {
+          "code": "M51.36",
+          "description": "Other intervertebral disc degeneration, lumbar region"
+        },
+        "requestingProvider": "Daniel Restrepo, MD",
+        "specialty": "Family Medicine",
+        "facility": "Riverbend Community Health",
+        "submittedDate": "2026-08-23",
+        "urgency": "standard"
+      },
+      "review": {
+        "status": "pending_medical_director",
+        "nurseReviewer": "K. Osei, RN",
+        "nurseNote": "Prior lumbar MRI within 90 days. No documented interval change in symptoms or examination (C3).",
+        "proposedAction": "deny"
+      },
+      "documentBundle": {
+        "documentCount": 3,
+        "totalPages": 27,
+        "hasUnitemizedOutsideRecords": false
+      },
+      "groundTruth": {
+        "criteriaMet": false,
+        "correctAction": "deny",
+        "shouldFlag": false
+      },
+      "modelBehavior": {
+        "flags": false
+      }
+    }
+  ]
+}
