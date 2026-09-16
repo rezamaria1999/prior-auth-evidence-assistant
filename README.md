@@ -1,101 +1,193 @@
-# Prior Authorization Evidence Assistant — working prototype
+# Prior Authorization Evidence Assistant
 
-A prototype for a utilization management problem: prior authorization requests get
-denied for missing documentation that the plan already holds. This surfaces that
-evidence to the reviewing physician *before* the determination, instead of leaving it
-to be found on appeal.
+A prototype for a utilization management problem. Coverage requests get denied for
+insufficient documentation when the documentation is frequently not missing — it sits
+on page nine of a forty-page fax, or in the plan's own claims ledger, because the plan
+already paid for the treatment it is now saying wasn't documented.
 
-Built as a take-home for a Senior AI Technical Product Manager interview.
+This assembles that evidence and puts it in front of the clinician reviewing the case,
+before the determination rather than after the appeal.
 
-**Live demo:** https://USERNAME.github.io/REPO/
-**Slides:** https://USERNAME.github.io/REPO/deck/
+**Case study:** [maria-reza-pm-portfolio.netlify.app](https://maria-reza-pm-portfolio.netlify.app/#humana) ·
+**Technical write-up on evaluation:** [same site, evals page](https://maria-reza-pm-portfolio.netlify.app/#evals)
 
 ---
 
 ## What to look at first
 
-If you have five minutes and want to judge the engineering thinking rather than the
-product narrative, read these three files in order:
+If you have ten minutes and want to judge the engineering rather than the product
+narrative, these four in this order:
 
 | File | Why |
 |---|---|
-| [`prompts/extraction-prompt.md`](prompts/extraction-prompt.md) | The actual prompt the system runs, with the reasoning behind each constraint. The safety properties are enforced here. |
-| [`scripts/verify_citations.py`](scripts/verify_citations.py) | The hallucination guard. Every model finding must quote text that provably exists in the source, checked by exact string containment. No model involved. |
-| [`scripts/test_guard.py`](scripts/test_guard.py) | The negative test. Injects fabricated and drifted quotations and confirms each is discarded — the guard is demonstrated, not asserted. |
+| `prompts/extraction-prompt.md` | The prompt the system actually runs, with the reasoning behind each constraint. The safety properties are enforced here and in the two guards below. |
+| `scripts/verify_citations.py` | The hallucination guard. Every model quotation is string-matched against its source before display, and failures are discarded. Roughly ten lines of real logic. |
+| `scripts/structural_checks.py` | The relevance guard. Catches evidence that is authentic and irrelevant, which the citation guard cannot see. |
+| `scripts/evaluate.py` | The offline harness. Scores model output against a labelled probe set, broken out by failure class rather than pooled. |
 
-## Architecture
+## Run it
+
+No dependencies beyond Python 3.
+
+```bash
+python3 scripts/verify_citations.py    # provenance guard against the cached outputs
+python3 scripts/test_guard.py          # negative test: fabricated and drifted quotes
+python3 scripts/evaluate.py --compare  # offline eval, with and without the relevance guard
+```
+
+The prototype itself is a single self-contained HTML file. Open `index.html` in a
+browser; nothing to install and no server required.
+
+---
+
+## How it works
 
 Three layers run in order, and only the last one is a language model.
 
-1. **Claims query** — deterministic. Resolves criterion conditions that the plan's own
-   claims history already answers.
-2. **Structured checks** — deterministic. Resolves conditions answerable from
-   structured fields on the request.
+1. **Claims query** — deterministic. Resolves criterion conditions the plan's own claims
+   history already answers. A paid claim is a transaction record, not an inference.
+2. **Structured checks** — deterministic. Service codes, diagnosis pointers, prior
+   imaging, body-region consistency.
 3. **Narrative reading** — the language model. Handles only what layers 1 and 2 could
-   not resolve, and receives their results as `ALREADY_RESOLVED` so it does not
-   re-derive or contradict a stronger source of evidence.
+   not resolve, and receives their results so it does not re-derive or contradict a
+   stronger source.
 
-Two design decisions worth naming:
+The ordering comes from the coverage rule itself. CMS LCD L34220 reads: *"MRI will be
+covered only if the patient has not responded to a reasonable trial of conservative
+management lasting at least four weeks."* One sentence, two conditions, completely
+different kinds of question. Whether therapy happened and for how long is a database
+query. Whether the patient responded to it exists only in prose, in a different
+document every time.
 
-- **The model never decides.** It locates and quotes evidence bearing on a named
-  coverage criterion. It does not assess medical necessity, characterise the strength
-  of a case, or describe missing evidence as supporting denial. The physician makes
-  every determination.
-- **An empty result is a correct result,** and its wording is specified verbatim in the
-  prompt. When the system finds nothing, the reviewer proceeds toward denial — so
-  silence carries weight in the workflow whether or not that is intended. Wording that
-  implied "nothing found, safe to deny" would make the system a participant in adverse
-  determinations through the back door.
+Most coverage criteria have that shape, which is why adding a criterion means adding a
+document rather than writing code.
 
-The prototype's outputs include a case where layer 3 still makes an error the prompt is
-written to prevent: a complete, well-formatted therapy record for a *knee* replacement
-in a case about a *lumbar* complaint. That failure is left in deliberately. It is why
-the deterministic layer runs first and why layer disagreement is surfaced to the
-reviewer rather than resolved silently.
+### What it cannot do
 
-## Running it
+- **Deny.** No code path runs from the model to an adverse determination. Absent from
+  the architecture, not disabled by a setting.
+- **Quote something that isn't there.** Verbatim quotation, exact string match, failures
+  dropped before display.
+- **Settle a disagreement.** When the claims layer and the model contradict each other,
+  both are shown and the clinician decides.
+- **Imply a denial by going quiet.** The empty state is fixed wording that cannot be
+  read as "nothing found, safe to deny."
 
-The demo is a single self-contained file. No server, no dependencies.
+---
 
-```bash
-open index.html
-```
+## Two guards, two different properties
 
-To rebuild it after editing the data:
+The distinction matters more than it looks, and conflating them is the most common way
+to think a system is safer than it is.
 
-```bash
-python3 build.py                      # inlines data/*.json into index.html
-python3 scripts/verify_citations.py   # check every quotation against its source
-python3 scripts/test_guard.py         # confirm fabricated quotations are discarded
-```
+**Provenance** — does this text exist, verbatim, where the model says it does?
+`verify_citations.py` answers that by string equality. No model involved.
 
-The data lives as JSON so it stays readable and reviewable; `build.py` inlines it so the
-demo is a file you can double-click.
+**Relevance** — does that authentic text bear on *this* criterion for *this* request?
+`structural_checks.py` answers that with lookups: body region, member identity, trial
+duration.
+
+The prototype ships with a case that makes the difference concrete. A member's record
+holds twenty-one paid therapy claims across eight weeks, fully documented and entirely
+real. Every claim carries a diagnosis pointer for a knee replacement. The request is
+about a lumbar complaint. The model reports the therapy as supporting evidence, the
+quotation verifies perfectly, and the finding is useless.
+
+That case is left in on purpose. The prompt's rule 4 already instructs the model to
+check body region, and the cached outputs show it does not reliably comply, which is
+the argument for enforcing it outside the model rather than writing a sterner prompt.
+
+One detail in `check_duration` worth reading: it fires only when the ledger shows a
+trial that is affirmatively *too short*, never on the absence of claims. Out-of-network,
+cash-pay and self-directed therapy are invisible to a claims ledger, so treating "no
+claims found" as "no therapy happened" would suppress findings for exactly the members
+this is meant to help.
+
+---
+
+## Evaluation
+
+`data/eval-set.json` is a labelled probe set. Each probe exercises one named way the
+system can fail: therapy for the wrong body region, a patient who actually got better,
+therapy that hasn't happened yet, therapy explicitly declined, a trial too short to
+count, a page belonging to a different member, a genuine find buried in illegible
+handwriting, plus a clean positive as a control.
+
+`scripts/evaluate.py` scores an outputs file against those labels and reports detection
+with Wilson intervals, localisation, citation fidelity, relevance, abstention quality
+and concern calibration, broken out per slice.
+
+Running `--compare` shows the result that motivated the relevance guard:
+
+| | Layer 3 alone | + structural checks |
+|---|---|---|
+| Precision | 25% | 100% |
+| Recall | 50% | 50% |
+| False positives | 3 | 0 |
+
+Precision moves because every false positive on that slice was catchable by a join.
+Recall does not move at all, because it is a different problem: the remaining miss is a
+real find in a poor handwritten scan where the model tidied the abbreviations while
+quoting, and the provenance guard discarded it for quote drift. Correctly. Loosening
+the string match to recover it would trade away the property that makes every other
+citation trustworthy, so that one is still open.
+
+### What these numbers are not
+
+The probe set is a **constructed adversarial slice**, not a random sample. Hard
+negatives are over-represented deliberately, because failures of that kind are rare in
+a random draw and disproportionately destroy reviewer trust. Precision here is a
+diagnostic, never a prevalence estimate, and it must not be pooled with the
+random-sample queue metrics.
+
+n = 8. Every interval is enormous. A production gold set would be physician-adjudicated
+by two independent reviewers with a tracked inter-rater agreement rate, which is the
+ceiling on achievable performance and is currently unmeasured here. The harness prints
+all of this with its own output rather than leaving it to a footnote.
+
+---
+
+## Data
+
+Every case, member, provider and document in this repository is **synthetic**. No real
+records, no protected health information. Coverage criteria are quoted from published
+CMS local coverage determinations and are real.
+
+The cached model outputs in `data/model-outputs.json` and `data/eval-outputs.json` were
+produced by running the prompt against the case documents. They are recorded as
+produced, including the ones that are wrong, and are not hand-authored to a target
+score.
 
 ## Repository map
 
 ```
-index.html                   built demo — open this
-build.py                     inlines data into index.html
-src/shell.html               demo source (pre-inlining)
-data/
-  cases-hero.json            full cases with complete source documents
-  cases-queue.json           queue-level summaries, calibration, model performance
-  criteria.json              coverage criteria, quoted from the CMS determination
-  model-outputs.json         model outputs with provenance and prompt version
-prompts/
-  extraction-prompt.md       the production prompt + design notes
+index.html                     working prototype, self-contained
+deck/index.html                presentation version
+build.py                       inlines data into the single-file prototype
+src/shell.html                 prototype template used by build.py
+
+prompts/extraction-prompt.md   the production prompt
+
 scripts/
-  verify_citations.py        citation guard
-  test_guard.py              negative test for the guard
-deliverables/                written deliverables (problem brief, service design,
-                             roadmap, key tradeoff, data & evaluation strategy)
-deck/                        presentation slides
+  verify_citations.py          provenance guard
+  test_guard.py                negative test for the guard
+  structural_checks.py         relevance guard
+  evaluate.py                  offline eval harness
+
+data/
+  criteria.json                CMS LCD L34220, quoted
+  cases-hero.json              the three demo cases with full documents
+  cases-queue.json             31 generated queue cases
+  generate_queue.py            how the queue was composed, and why
+  model-outputs.json           cached layer-3 outputs for the demo cases
+  eval-set.json                labelled probe set
+  eval-outputs.json            model outputs for the probes
+
+deliverables/                  problem brief, service design, roadmap, key tradeoff,
+                               data and evaluation strategy, technical appendix
 ```
 
-## A note on the data
+---
 
-Every case, member and document in this repository is **synthetic**. No real member
-data, no real claims, no protected health information. Coverage criteria are quoted
-from published CMS local coverage determinations; the clinical records around them are
-fabricated to exercise the workflow, including the failure cases.
+*Independent product exercise, built to demonstrate product thinking on a publicly
+documented problem. Not affiliated with, endorsed by, or reviewed by any health plan.*

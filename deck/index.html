@@ -116,21 +116,6 @@
   <p style="margin-top:22px; font-size:23px">Roughly twenty-five minutes, then questions. Interrupt whenever.</p>
 </section>
 
-<!-- 3 · OPTIONS -->
-<section class="slide top" style="padding-top:46px">
-  <div class="eyebrow"><span class="tag">1</span>Problem Brief · choosing where to work</div>
-  <h2 class="sm" style="margin-bottom:16px">Five candidates across utilization management, care management and claims.</h2>
-  <table class="compact">
-    <tr><th style="width:52px"></th><th style="width:340px">What the product would be</th><th>Why it did or didn't win</th></tr>
-    <tr class="dim"><td><strong>A</strong></td><td>Auto-approve clear-cut prior auth, route the rest</td><td>Least differentiated. Closest to what vendors already sell here</td></tr>
-    <tr class="dim"><td><strong>B</strong></td><td>Length-of-stay decisions in post-acute care</td><td>Deepest specialist knowledge on the list, and active industry litigation</td></tr>
-    <tr class="hi"><td><strong>C</strong></td><td>Catch wrong denials before the letter goes out</td><td><strong>Chosen.</strong> The failure is documented by CMS's own auditor, and the process is codified so I can be precise rather than approximate</td></tr>
-    <tr class="dim"><td><strong>D</strong></td><td>Care management and Stars gap closure</td><td>Closest to my own background, but risk stratification is twenty-year-old actuarial practice. Hard to make genuinely AI-shaped</td></tr>
-    <tr class="dim"><td><strong>E</strong></td><td>Triage provider claim disputes</td><td>Real problem, well documented, but no member ever feels the fix</td></tr>
-  </table>
-  <p style="margin-top:16px; font-size:23px">Three tests: is the failure documented by someone outside Humana, is the data to fix it already inside the company, and does a wrong answer reach a member. C was the only one where all three held.</p>
-</section>
-
 <!-- 4 · THE PROBLEM -->
 <section class="slide top" style="padding-top:46px">
   <div class="eyebrow"><span class="tag">1</span>Problem Brief · the problem</div>
@@ -165,55 +150,54 @@
   <p style="margin-top:18px; font-size:24px; color:var(--ink)">Appealing takes initiative, paperwork and usually an advocate. Whether a first decision ever gets checked depends on who the member is.</p>
 </section>
 
-<!-- 6 · HUMANA POSITION -->
-<section class="slide top" style="padding-top:46px">
+
+<!-- 4 · HUMANA POSITION -->
+<section class="slide top" style="padding-top:56px">
   <div class="eyebrow"><span class="tag">1</span>Problem Brief · Humana's position, for context</div>
-  <h2 class="sm" style="margin-bottom:16px">Humana runs the highest prior authorization volume in Medicare Advantage at the lowest denial rate.</h2>
+  <h2 class="sm" style="margin-bottom:18px">Highest prior authorization volume in Medicare Advantage. Lowest denial rate.</h2>
   <div class="stats">
-    <div class="stat"><div class="n">2.2</div><div class="l">prior auth requests per enrollee. Industry average is 1.7, UnitedHealth 1.0</div></div>
+    <div class="stat"><div class="n">2.2</div><div class="l">prior auth requests per member. Industry average 1.7, UnitedHealth 1.0</div></div>
     <div class="stat"><div class="n">5.8%</div><div class="l">denial rate. UnitedHealth 12.8%, industry 7.7%</div></div>
-    <div class="stat key"><div class="n">0.128</div><div class="l"><strong>denials per enrollee — identical to UnitedHealth's 0.128</strong></div></div>
+    <div class="stat key"><div class="n">0.128</div><div class="l"><strong>denials per member — the same as UnitedHealth's 0.128</strong></div></div>
   </div>
-  <p style="margin-top:20px; font-size:24px">KFF notes that plans requiring prior auth on more services deny a smaller share of them. So the rate gap is mostly denominator, and per member the exposure matches. <strong>What matters here is the absolute number: 5.8% of roughly 16 million requests is about 930,000 denials a year.</strong></p>
-  <p style="margin-top:12px; font-size:22px">Humana has also already removed 340+ codes from prior authorization. The easy approvals are gone. What is left is the hard residual.</p>
+  <p style="margin-top:24px; font-size:25px; color:var(--ink)">KFF notes that plans requiring prior auth on more services deny a smaller share of them, so most of that rate gap is denominator. <strong>5.8% of roughly 16 million requests is still about 930,000 denials a year.</strong></p>
 </section>
 
-<!-- 7 · WHY NOW -->
-<section class="slide top" style="padding-top:50px">
-  <div class="eyebrow"><span class="tag">1</span>Problem Brief · why now</div>
-  <h2 class="sm">Humana has publicly committed to being fast. It has also started publishing how often it is right.</h2>
-  <table class="compact">
-    <tr><td style="width:210px"><strong>2026</strong><span class="sub">now</span></td><td>CMS-0057-F clocks are live: 7 days standard, 72 hours expedited. Decision-quality metrics went public on 31 March</td></tr>
-    <tr><td><strong>2026</strong><span class="sub">now</span></td><td>Humana's own pledge: 95% of complete electronic requests decided within one business day. Gold carding launching</td></tr>
-    <tr><td><strong>Jan 2027</strong></td><td>Four FHIR APIs land, including the Prior Authorization API</td></tr>
-    <tr class="hi"><td><strong>Through 2027</strong></td><td>Humana becomes the largest MA insurer, around 7.3 million members. Every per-member rate scales with it</td></tr>
+<!-- 5 · WHAT GOES WRONG, AND HOW OFTEN -->
+<section class="slide top" style="padding-top:48px">
+  <div class="eyebrow"><span class="tag">1</span>Problem Brief · what goes wrong, and how often</div>
+  <h2 class="sm" style="margin-bottom:16px">OIG sampled Medicare Advantage denials. 13% met coverage rules and should have been approved.</h2>
+  <div class="note g" style="margin-top:0; font-size:25px">Two mechanisms. Applying criteria that aren't in Medicare's rules — and <strong>claiming insufficient documentation when the records in hand were sufficient.</strong><br><br>The file wasn't incomplete. The answer was in it, and nobody found it.</div>
+  <table class="compact" style="margin-top:20px">
+    <tr><th style="width:600px">Per 10,000 denials in one service line</th><th></th></tr>
+    <tr><td>Wrongly denied</td><td class="num">1,300</td></tr>
+    <tr class="dim"><td>Appealed and overturned — what the process catches</td><td class="num">~120</td></tr>
+    <tr class="hi"><td>Never appealed, never corrected</td><td class="num">~1,180</td></tr>
   </table>
-  <p style="margin-top:20px; font-size:25px; color:var(--ink)">Speed and accuracy normally trade against each other, and both are now measured in public. That tension did not exist eighteen months ago, because the accuracy half was not published.</p>
+  <p style="margin-top:14px; font-size:21px">13% is a ceiling, not an estimate — a 2019 sample across 15 organizations, and Humana denies below the industry rate.</p>
 </section>
 
-<!-- 8 · TARGET USER -->
-<section class="slide top" style="padding-top:50px">
+<!-- 6 · TARGET USER -->
+<section class="slide top" style="padding-top:56px">
   <div class="eyebrow"><span class="tag">1</span>Problem Brief · who this is for</div>
-  <h2 class="sm">The clinician who reviews a case before a denial can be issued. CMS requires that person to exist.</h2>
+  <h2 class="sm">The clinician who reviews a case before a denial can go out. CMS requires that person to exist.</h2>
   <div class="note g" style="margin-top:0">Under CMS-4201-F, an adverse medical-necessity decision must be reviewed by <strong>"a physician or other appropriate health care professional with expertise in the field of medicine … before"</strong> the determination is issued.</div>
-  <ul class="pts" style="margin-top:22px">
-    <li><b>This adds no step and no approver.</b> It improves what is on the screen at a review that already happens and is already mandated.</li>
-    <li><b>The nurse reviewer benefits too.</b> Cases arrive with the record already searched instead of as an unsorted packet.</li>
-    <li><b>The member never sees it</b>, and that is the point. Whether their first decision is correct stops depending on whether they can appeal.</li>
+  <ul class="pts" style="margin-top:26px">
+    <li><b>No new step, no new approver.</b> A different screen at a review that already happens.</li>
+    <li><b>The member never sees it.</b> Whether their first decision is right stops depending on whether they can appeal.</li>
   </ul>
 </section>
 
-<!-- 9 · SIZING -->
-<section class="slide top" style="padding-top:56px">
-  <div class="eyebrow"><span class="tag">1</span>Problem Brief · how big</div>
-  <h2 class="sm">Per 10,000 denials in one service line</h2>
-  <table>
-    <tr><td>Wrongly denied, applying the OIG's 13% finding</td><td class="num">1,300</td></tr>
-    <tr class="dim"><td>Appealed and overturned — what the process catches today</td><td class="num">~120</td></tr>
-    <tr class="hi"><td>Never appealed, so never corrected</td><td class="num">~1,180</td></tr>
-  </table>
-  <p style="margin-top:22px; font-size:25px; color:var(--ink)">Most denials are correct. The ones that are not are only found when somebody appeals, and <strong>the group that never appeals is roughly ten times the group that does.</strong></p>
-  <p style="margin-top:14px; font-size:22px">OIG's 13% comes from a 2019 sample across 15 organizations, not from Humana, and Humana already denies below the industry rate. So treat 13% as the ceiling. Even at a third of it, this is tens of thousands of cases a year.</p>
+<!-- 7 · WHY NOW -->
+<section class="slide top" style="padding-top:70px">
+  <div class="eyebrow"><span class="tag">1</span>Problem Brief · why now</div>
+  <h2>Humana committed publicly to speed. In the same year, it started publishing how often it is right.</h2>
+  <ul class="pts" style="margin-top:8px">
+    <li><b>95% of complete electronic requests decided within one business day.</b> Humana's own pledge.</li>
+    <li><b>Decision-quality metrics published since 31 March, under CMS-0057-F.</b> Approvals, denials, appeal overturns, turnaround — comparable across plans, permanently.</li>
+    <li><b>And the clocks tightened.</b> Seven days standard, 72 hours expedited.</li>
+  </ul>
+  <p style="margin-top:26px; font-size:26px; color:var(--ink)">Speed and accuracy normally trade against each other. Both are now measured in public, and that was not true eighteen months ago.</p>
 </section>
 
 <!-- 10 · CURRENT STATE -->
@@ -289,22 +273,6 @@
     </svg>
     <figcaption>The member does nothing different. The provider sends the same packet. The nurse applies the same criteria and routes the case the same way, and the medical director still makes the call. What changes is what is on his screen when he makes it.</figcaption>
   </figure>
-</section>
-
-<!-- 13 · WHAT CHANGES -->
-<section class="slide top" style="padding-top:52px">
-  <div class="eyebrow"><span class="tag">2</span>Service Design · what the redesign touches</div>
-  <h2 class="sm">Almost nothing, which is why it can ship.</h2>
-  <table class="compact">
-    <tr><th>&nbsp;</th><th style="width:270px">Today</th><th style="width:290px">With the assistant</th></tr>
-    <tr><td>What the member does</td><td>—</td><td>Nothing different</td></tr>
-    <tr><td>What the provider submits</td><td>14-page fax</td><td>The same 14-page fax</td></tr>
-    <tr><td>Nurse review</td><td>Applies criteria, routes</td><td>Unchanged</td></tr>
-    <tr><td>Who makes the decision</td><td>Medical director</td><td>Medical director</td></tr>
-    <tr class="hi"><td>What that person sees</td><td>An unsorted fax</td><td>Assembled evidence, every claim sourced</td></tr>
-    <tr><td>Clinical reviews of the case</td><td>2</td><td>1</td></tr>
-  </table>
-  <p style="margin-top:18px; font-size:24px; color:var(--ink)">Nobody's job changes. One person's screen does.</p>
 </section>
 
 <!-- 14 · CASCADE -->
@@ -514,28 +482,26 @@
 
   var NOTES = {
     0:"<b>~20s.</b> Say the subtitle out loud. Don't just let them read it.",
-    1:"<b>~30s.</b> The map. Tells them you're answering the brief, not freestyling. Move fast.",
-    2:"<b>~60s.</b> Don't walk all five rows. Name B and D as the tempting ones, land on C. The three tests are the judgment. <b>If asked what changed along the way:</b> started with scoring denials on overturn likelihood, dropped it because appeal outcomes predict who fights, not who's right.",
-    3:"<b>~75s.</b> Let the grey block sit. Point at it. This is the problem, nothing else.",
-    4:"<b>~45s.</b> Do the division for them before anyone does it to you. The point is absolute volume, not who's nicer.",
-    5:"<b>~60s.</b> Speed and accuracy both public, both new. The opening didn't exist 18 months ago.",
-    6:"<b>~45s.</b> Target audience. The regulation is why this user exists. No new approver, no new step.",
-    7:"<b>~60s.</b> Say 'most denials are correct' out loud. Then the 13% ceiling and the third-of-it floor. Volunteer both.",
-    8:"<b>~90s. Slow down.</b> Read the days. Don't editorialise.",
-    9:"<b>~60s.</b> 'Nobody made a mistake' makes this a system problem, not a people problem.",
-    10:"<b>~90s.</b> Point at the gap on the bottom lane. Read the caption almost verbatim.",
-    11:"<b>~45s.</b> The last line is the one that matters to an engineering director.",
-    12:"<b>~90s. Highest-scoring section against the brief.</b> Certain-but-incomplete, then the half nothing can query. <b>If asked why not just use claims:</b> claims are certain and silent on non-response.",
-    13:"<b>~75s.</b> 'Absent from the architecture' is the phrase they'll notice.",
-    14:"<b>8 minutes. PROTECT THIS.</b> Margaret 2.5 · Cheng 3 · Ramírez 2. Switch tabs now.",
-    15:"<b>~60s.</b> Say the provenance precisely — overstating the prototype is the one thing that could actually damage you. Then the interval: you're using statistics to show why you don't trust your own number.",
-    16:"<b>~75s.</b> Constraints, not week counts. Cohere line: flat, in passing, no emphasis.",
-    17:"<b>~75s.</b> Say 'complete retrievable record' exactly. The third bullet is the falsifiable one.",
-    18:"<b>~60s.</b> The cheapest test available. Most candidates present metrics that can't fail.",
-    19:"<b>~60s.</b> Name the cost before they find it, then go straight on.",
-    20:"<b>~75s.</b> Top branch first — clean saving. Then the bottom. Say the asterisk yourself before anyone asks.",
-    21:"<b>~45s.</b> Deliver the last line slowly.",
-    22:"<b>~45s. Then stop talking.</b> Three checkpoints, each can kill it, the first is nearly free."
+    1:"<b>~25s.</b> The map. Tells them you're answering the brief. Move fast.",
+    2:"<b>~70s.</b> Let the dots sit. Point at the grey block. This is the problem, nothing else.",
+    3:"<b>~45s.</b> Do the division before anyone does it to you. Point is absolute volume, not who's nicer.",
+    4:"<b>~70s.</b> Open with 'most denials are correct'. Then the mechanism, then the table, then 13% as a ceiling.",
+    5:"<b>~40s.</b> Target audience. The regulation is why this user exists. No new step, no new approver.",
+    6:"<b>~40s.</b> Speed and accuracy both public, both new this year.",
+    7:"<b>~85s. Slow right down.</b> Read the days. No adjectives. The table does the work.",
+    8:"<b>~60s.</b> 'Nobody made a mistake' makes this a system problem. Then 'day seven counts as a success'.",
+    9:"<b>~100s.</b> Point at the bottom lane, then the gap. Absorb the two-reviews-to-one point here.",
+    10:"<b>~85s. Highest-scoring section.</b> Two halves. Certain-but-silent, then the half nothing can query.",
+    11:"<b>~70s.</b> 'Absent from the architecture' is the phrase they'll notice.",
+    12:"<b>7 minutes. PROTECT THIS.</b> Margaret 2 · Cheng 3 · Ramírez 2. Switch tabs now.",
+    13:"<b>~55s.</b> Provenance precisely. Then the interval: statistics used against your own number.",
+    14:"<b>~150s.</b> Longest section after the demo. Constraints not week counts. Cohere line flat, in passing.",
+    15:"<b>~55s.</b> Say 'complete retrievable record' exactly. Third bullet is the falsifiable one.",
+    16:"<b>~50s.</b> The cheapest test available.",
+    17:"<b>~55s.</b> Name the cost before they find it, then go straight on.",
+    18:"<b>~75s.</b> Top branch first. Say the asterisk yourself before anyone asks.",
+    19:"<b>~40s.</b> Slowly. The slide has the phrase — give the reasoning, then stop.",
+    20:"<b>~40s. Then stop talking.</b> Three checkpoints, each can kill it, first is nearly free."
   };
 
   function fit(){ deck.style.transform = 'scale(' + (Math.min(window.innerWidth/1280, window.innerHeight/720)*0.965) + ')'; }

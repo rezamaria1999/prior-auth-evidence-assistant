@@ -1,0 +1,470 @@
+{
+  "_note": "Labelled probe set for offline evaluation of the layer-3 narrative reader against LCD L34220 criterion C2. Each probe carries a structured label: whether findable support exists, where it sits, and \u2014 for hard negatives \u2014 why the plausible-looking evidence does not count. The harness (scripts/evaluate.py) scores any outputs file against these labels.",
+  "_provenance": "Probe documents are synthetic and written to exercise one named failure class each. Clinical phrasing follows the conventions of real therapy discharge summaries and office notes; no real record, member or provider is reproduced. Labels are authored, not adjudicated \u2014 a production gold set would be physician-adjudicated with two independent reviewers and a tracked inter-rater agreement rate. That number is the ceiling on achievable performance and is currently UNMEASURED here.",
+  "_samplingWarning": "This is a CONSTRUCTED adversarial slice, not a random sample. Hard negatives are over-represented on purpose, because Cheng-class failures are rare in a random draw and catastrophic for reviewer trust. Precision and recall computed on this slice are diagnostic, not prevalence estimates. Never pool these with the random-sample queue metrics.",
+  "schemaVersion": "1",
+  "criterion": {
+    "id": "C2",
+    "lcdId": "L34220",
+    "text": "MRI will be covered only if the patient has not responded to a reasonable trial of conservative management lasting at least four weeks.",
+    "conditions": [
+      {
+        "id": "C2a",
+        "text": "a reasonable trial of conservative management lasting at least four weeks",
+        "answerableBy": "claims"
+      },
+      {
+        "id": "C2b",
+        "text": "the patient has not responded to it",
+        "answerableBy": "narrative"
+      }
+    ]
+  },
+  "probes": [
+    {
+      "id": "EV-001",
+      "slice": "buried_outside_records",
+      "sliceKind": "positive_control",
+      "description": "Support exists and is findable, buried in an unitemised outside-records packet. The control that proves the harness detects true positives.",
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine without contrast",
+        "icd10": [
+          "M54.50",
+          "M51.36"
+        ],
+        "bodyRegion": "lumbar"
+      },
+      "claimsLayer": {
+        "resolvesCondition": "C2a",
+        "satisfied": true,
+        "basis": "6 paid therapy claims 2026-03-02 to 2026-04-14, CPT 97110/97140, lumbar diagnosis pointer M54.50",
+        "recordsFound": true,
+        "observedSpanDays": 43,
+        "evidenceRegion": "lumbar"
+      },
+      "documents": [
+        {
+          "id": "DOC-1",
+          "type": "Office Note",
+          "source": "Referring physician",
+          "date": "2026-08-20",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "ASSESSMENT AND PLAN",
+              "text": "Chronic low back pain, ongoing. Patient has tried therapy in the past without lasting benefit. Requesting MRI lumbar spine to evaluate for structural cause."
+            }
+          ]
+        },
+        {
+          "id": "DOC-2",
+          "type": "Outside Records Packet",
+          "source": "Riverbend Physical Therapy",
+          "date": "2026-04-14",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "COVER SHEET",
+              "text": "Records transmitted at patient request. 4 pages follow."
+            },
+            {
+              "page": 2,
+              "heading": "INTAKE",
+              "text": "Referral for lumbar strengthening and pain management. Onset approximately 5 months prior to intake."
+            },
+            {
+              "page": 3,
+              "heading": "TREATMENT LOG",
+              "text": "Twelve visits completed between 03/02/2026 and 04/14/2026. Interventions: therapeutic exercise, manual therapy, lumbar stabilisation, home exercise program."
+            },
+            {
+              "page": 4,
+              "heading": "DISCHARGE SUMMARY",
+              "text": "Patient completed a six-week course of skilled physical therapy directed at the lumbar spine. Pain and functional limitation are essentially unchanged from intake. GOALS: 1 of 4 functional goals met. Patient has not responded to conservative management and continues to report symptoms limiting activities of daily living."
+            }
+          ]
+        }
+      ],
+      "label": {
+        "supportExists": true,
+        "shouldFlag": true,
+        "acceptableEvidence": [
+          {
+            "documentId": "DOC-2",
+            "page": 4,
+            "mustContain": "has not responded to conservative management"
+          },
+          {
+            "documentId": "DOC-2",
+            "page": 4,
+            "mustContain": "1 of 4 functional goals met"
+          }
+        ],
+        "notes": "Lumbar-directed, six weeks, explicit non-response. Unambiguous positive."
+      }
+    },
+    {
+      "id": "EV-002",
+      "slice": "wrong_body_region",
+      "sliceKind": "hard_negative",
+      "description": "Cheng class. A complete, well-formatted therapy record that exceeds four weeks \u2014 treating a different body region. The record is authentic and the citation will verify; it is simply not about this complaint.",
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine without contrast",
+        "icd10": [
+          "M54.50"
+        ],
+        "bodyRegion": "lumbar"
+      },
+      "claimsLayer": {
+        "resolvesCondition": "C2a",
+        "satisfied": false,
+        "basis": "18 paid therapy claims 2026-02-10 to 2026-04-07, every claim carrying diagnosis pointer M75.101 (rotator cuff tear, right shoulder). No lumbar-directed conservative management appears in claims.",
+        "recordsFound": true,
+        "observedSpanDays": 56,
+        "evidenceRegion": "shoulder"
+      },
+      "documents": [
+        {
+          "id": "DOC-1",
+          "type": "Office Note",
+          "source": "Referring physician",
+          "date": "2026-08-25",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "HISTORY",
+              "text": "Low back pain for several months. Patient reports extensive physical therapy this year. Requesting lumbar MRI."
+            }
+          ]
+        },
+        {
+          "id": "DOC-2",
+          "type": "Therapy Discharge Summary",
+          "source": "Summit Rehabilitation Services",
+          "date": "2026-04-07",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "EPISODE OF CARE",
+              "text": "Treating Diagnosis: Rotator cuff tear, right shoulder (M75.101). Dates of Service: 02/10/2026 through 04/07/2026. Eighteen visits completed."
+            },
+            {
+              "page": 2,
+              "heading": "DISCHARGE SUMMARY",
+              "text": "Patient completed an eight-week course of skilled physical therapy without meaningful improvement in pain or function. Symptoms have not responded to conservative management including therapeutic exercise, manual therapy, and an independent home exercise program. GOALS: 0 of 3 functional goals met. Postural screening performed at intake noted mild lumbar discomfort with prolonged sitting; not addressed in this episode."
+            }
+          ]
+        }
+      ],
+      "label": {
+        "supportExists": false,
+        "shouldFlag": false,
+        "failureClassIfFlagged": "wrong_body_region",
+        "whyNot": "The therapy episode treated a right shoulder rotator cuff tear. The quoted non-response language is authentic and will pass citation verification, but it describes shoulder-directed care. The only lumbar mention is incidental postural screening explicitly not addressed in the episode. Conservative management for the lumbar complaint did not occur.",
+        "deterministicallyCatchable": true,
+        "catchableBy": "Body-region consistency: request region (lumbar, M54.50) does not match evidence region (shoulder, M75.101)."
+      }
+    },
+    {
+      "id": "EV-003",
+      "slice": "responded_to_treatment",
+      "sliceKind": "hard_negative",
+      "description": "Everything matches except the half that matters. Lumbar-directed, recent, well past four weeks \u2014 and the patient got better. Tests whether the reader checks the non-response half of the criterion or stops at duration.",
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine without contrast",
+        "icd10": [
+          "M51.36"
+        ],
+        "bodyRegion": "lumbar"
+      },
+      "claimsLayer": {
+        "resolvesCondition": "C2a",
+        "satisfied": true,
+        "basis": "10 paid therapy claims 2026-05-04 to 2026-06-19, CPT 97110, lumbar diagnosis pointer M51.36",
+        "recordsFound": true,
+        "observedSpanDays": 46,
+        "evidenceRegion": "lumbar"
+      },
+      "documents": [
+        {
+          "id": "DOC-1",
+          "type": "Therapy Discharge Summary",
+          "source": "Lakeshore Physical Therapy",
+          "date": "2026-06-19",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "DISCHARGE SUMMARY",
+              "text": "Treating Diagnosis: Lumbar intervertebral disc degeneration (M51.36). Dates of Service: 05/04/2026 through 06/19/2026. Patient completed a seven-week course of skilled physical therapy directed at the lumbar spine. GOALS: 4 of 4 functional goals met. Pain reduced from 7/10 at intake to 2/10 at discharge. Patient returned to full work duties without restriction and was discharged to an independent home exercise program."
+            }
+          ]
+        },
+        {
+          "id": "DOC-2",
+          "type": "Office Note",
+          "source": "Referring physician",
+          "date": "2026-08-30",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "ASSESSMENT AND PLAN",
+              "text": "Known lumbar degenerative disc disease, clinically stable. Patient completed physical therapy earlier this year. Requesting MRI for further characterisation of known findings. No new neurological symptoms. No surgical consultation pending."
+            }
+          ]
+        }
+      ],
+      "label": {
+        "supportExists": false,
+        "shouldFlag": false,
+        "failureClassIfFlagged": "responded_to_treatment",
+        "whyNot": "A four-week trial demonstrably occurred, so the duration half of C2 is satisfied \u2014 but the criterion requires that the patient HAS NOT responded. Goals were fully met and pain dropped from 7/10 to 2/10. Reporting this as support for C2 inverts the criterion.",
+        "deterministicallyCatchable": false,
+        "catchableBy": "Narrative only. Claims confirm duration and cannot see outcome \u2014 this is precisely the half the claims ledger cannot answer."
+      }
+    },
+    {
+      "id": "EV-004",
+      "slice": "planned_not_completed",
+      "sliceKind": "hard_negative",
+      "description": "Future tense. All the right vocabulary, none of it having happened yet. Tests tense and modality handling.",
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine without contrast",
+        "icd10": [
+          "M54.50"
+        ],
+        "bodyRegion": "lumbar"
+      },
+      "claimsLayer": {
+        "resolvesCondition": "C2a",
+        "satisfied": false,
+        "basis": "No paid conservative management claims in the 18-month lookback.",
+        "recordsFound": false,
+        "observedSpanDays": null,
+        "evidenceRegion": null
+      },
+      "documents": [
+        {
+          "id": "DOC-1",
+          "type": "Office Note",
+          "source": "Referring physician",
+          "date": "2026-09-01",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "ASSESSMENT AND PLAN",
+              "text": "Low back pain, onset approximately three weeks ago. Plan: the patient will begin a six-week course of skilled physical therapy focused on lumbar stabilisation and therapeutic exercise, starting the week of 09/14/2026. We anticipate that symptoms will not respond to conservative management given the severity at presentation, and I am requesting lumbar MRI now so that imaging is available if therapy fails."
+            }
+          ]
+        }
+      ],
+      "label": {
+        "supportExists": false,
+        "shouldFlag": false,
+        "failureClassIfFlagged": "planned_not_completed",
+        "whyNot": "The therapy is prospective. 'Will begin', 'starting the week of', and 'we anticipate' describe a plan, not a completed trial. The criterion requires a trial that has occurred and to which the patient has not responded. Onset three weeks ago also makes a completed four-week trial impossible.",
+        "deterministicallyCatchable": true,
+        "catchableBy": "Partially \u2014 claims show zero conservative management, so the claims layer contradicts any narrative finding of a completed trial."
+      }
+    },
+    {
+      "id": "EV-005",
+      "slice": "negated_evidence",
+      "sliceKind": "hard_negative",
+      "description": "Contains every keyword the reader is looking for, inside a negation. The classic extraction trap.",
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine without contrast",
+        "icd10": [
+          "M54.50"
+        ],
+        "bodyRegion": "lumbar"
+      },
+      "claimsLayer": {
+        "resolvesCondition": "C2a",
+        "satisfied": false,
+        "basis": "No paid conservative management claims in the 18-month lookback.",
+        "recordsFound": false,
+        "observedSpanDays": null,
+        "evidenceRegion": null
+      },
+      "documents": [
+        {
+          "id": "DOC-1",
+          "type": "Office Note",
+          "source": "Referring physician",
+          "date": "2026-08-28",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "ASSESSMENT AND PLAN",
+              "text": "Discussed a four-week trial of conservative management including physical therapy, therapeutic exercise and anti-inflammatory medication. The patient declined physical therapy, citing work schedule and prior dissatisfaction with therapy for an unrelated condition. No course of conservative management was undertaken. Proceeding directly to a request for lumbar MRI at the patient's preference."
+            }
+          ]
+        }
+      ],
+      "label": {
+        "supportExists": false,
+        "shouldFlag": false,
+        "failureClassIfFlagged": "negated_evidence",
+        "whyNot": "The passage discusses conservative management in order to record that it did not happen. 'The patient declined' and 'no course of conservative management was undertaken' negate the very thing the criterion requires. Quoting the first sentence alone would pass citation verification and invert the meaning.",
+        "deterministicallyCatchable": true,
+        "catchableBy": "Partially \u2014 claims show zero conservative management, contradicting any positive narrative finding."
+      }
+    },
+    {
+      "id": "EV-006",
+      "slice": "insufficient_duration",
+      "sliceKind": "hard_negative",
+      "description": "Real, lumbar-directed, non-responsive \u2014 and two weeks long. Tests whether the stated duration bar is actually enforced.",
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine without contrast",
+        "icd10": [
+          "M54.50"
+        ],
+        "bodyRegion": "lumbar"
+      },
+      "claimsLayer": {
+        "resolvesCondition": "C2a",
+        "satisfied": false,
+        "basis": "4 paid therapy claims 2026-08-04 to 2026-08-17, lumbar diagnosis pointer M54.50. Span is 13 days \u2014 under the four-week threshold.",
+        "recordsFound": true,
+        "observedSpanDays": 13,
+        "evidenceRegion": "lumbar"
+      },
+      "documents": [
+        {
+          "id": "DOC-1",
+          "type": "Therapy Discharge Summary",
+          "source": "Northgate Rehabilitation",
+          "date": "2026-08-17",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "DISCHARGE SUMMARY",
+              "text": "Treating Diagnosis: Low back pain (M54.50). Dates of Service: 08/04/2026 through 08/17/2026. Four visits completed. Patient discontinued therapy early citing lack of benefit. Symptoms have not responded to conservative management to date. GOALS: 0 of 3 functional goals met."
+            }
+          ]
+        }
+      ],
+      "label": {
+        "supportExists": false,
+        "shouldFlag": false,
+        "failureClassIfFlagged": "insufficient_duration",
+        "whyNot": "Lumbar-directed and genuinely non-responsive, but the episode spans 13 days against a criterion that requires at least four weeks. The non-response language is real and will verify; the trial is simply too short to satisfy C2.",
+        "deterministicallyCatchable": true,
+        "catchableBy": "Claims span arithmetic: 2026-08-04 to 2026-08-17 is 13 days, under the 28-day threshold."
+      }
+    },
+    {
+      "id": "EV-007",
+      "slice": "wrong_patient",
+      "sliceKind": "hard_negative",
+      "description": "A misfiled page inside a faxed bundle \u2014 someone else's discharge summary. Routine in practice and invisible to a citation check.",
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine without contrast",
+        "icd10": [
+          "M54.50"
+        ],
+        "bodyRegion": "lumbar",
+        "memberName": "Delgado, Carmen",
+        "memberId": "H74051288"
+      },
+      "claimsLayer": {
+        "resolvesCondition": "C2a",
+        "satisfied": false,
+        "basis": "No paid conservative management claims for this member in the 18-month lookback.",
+        "recordsFound": false,
+        "observedSpanDays": null,
+        "evidenceRegion": null
+      },
+      "documents": [
+        {
+          "id": "DOC-1",
+          "type": "Outside Records Packet",
+          "source": "Unitemised fax, Cascade Spine Institute",
+          "date": "2026-07-22",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "COVER SHEET",
+              "text": "Patient: Delgado, Carmen. Member ID H74051288. 3 pages follow."
+            },
+            {
+              "page": 2,
+              "heading": "OFFICE NOTE",
+              "text": "Patient: Delgado, Carmen. Ongoing low back pain. Discussed options including therapy. Follow up in six weeks."
+            },
+            {
+              "page": 3,
+              "heading": "DISCHARGE SUMMARY",
+              "text": "Patient: Thistlewood, Arthur. DOB 04/11/1948. Member ID H883021447. Patient completed a six-week course of skilled physical therapy directed at the lumbar spine without meaningful improvement. Symptoms have not responded to conservative management. GOALS: 0 of 3 functional goals met."
+            }
+          ]
+        }
+      ],
+      "label": {
+        "supportExists": false,
+        "shouldFlag": false,
+        "failureClassIfFlagged": "wrong_patient",
+        "whyNot": "Page 3 belongs to a different member \u2014 different name, DOB and member ID from the request and from the packet cover sheet. The text is authentic lumbar non-response language and will pass citation verification against the bundle, because the page really is in the bundle. It is not this patient's record.",
+        "deterministicallyCatchable": true,
+        "catchableBy": "Identity consistency: member name and ID on the page do not match the request."
+      }
+    },
+    {
+      "id": "EV-008",
+      "slice": "illegible_scan",
+      "sliceKind": "positive",
+      "description": "Support genuinely exists but is degraded by scanning. The false-negative class \u2014 tests whether silence is correct or a miss.",
+      "request": {
+        "cpt": "72148",
+        "description": "MRI lumbar spine without contrast",
+        "icd10": [
+          "M54.50"
+        ],
+        "bodyRegion": "lumbar"
+      },
+      "claimsLayer": {
+        "resolvesCondition": "C2a",
+        "satisfied": true,
+        "basis": "7 paid therapy claims 2026-04-06 to 2026-05-25, lumbar diagnosis pointer M54.50",
+        "recordsFound": true,
+        "observedSpanDays": 49,
+        "evidenceRegion": "lumbar"
+      },
+      "documents": [
+        {
+          "id": "DOC-1",
+          "type": "Outside Records Packet",
+          "source": "Handwritten note, scanned",
+          "date": "2026-05-25",
+          "sections": [
+            {
+              "page": 1,
+              "heading": "PROGRESS NOTE (handwritten, poor scan quality)",
+              "text": "Pt c/o persist LBP. Compl 7wk PT course lumbar - no meaningful improv. Sympt have not resp to conserv mgmt. Goals 0/3 met. Cont NSAID. Consider further imaging."
+            }
+          ]
+        }
+      ],
+      "label": {
+        "supportExists": true,
+        "shouldFlag": true,
+        "acceptableEvidence": [
+          {
+            "documentId": "DOC-1",
+            "page": 1,
+            "mustContain": "Sympt have not resp to conserv mgmt"
+          }
+        ],
+        "notes": "Abbreviated clinical shorthand from a poor scan. The evidence is present and lumbar-directed; the reader must handle non-standard abbreviation rather than requiring well-formed prose. A miss here is a false negative, which carries member harm."
+      }
+    }
+  ]
+}

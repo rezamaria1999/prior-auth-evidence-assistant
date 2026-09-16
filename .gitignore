@@ -1,15 +1,19 @@
 # Personal presentation prep — NOT for publication.
-# These are speaking notes, adversarial self-critique, and anticipated-question
-# preparation. They are for the presenter only.
+# Speaking notes, adversarial self-critique, and anticipated-question preparation.
+# For the presenter only.
 deliverables/06-presentation-outline.md
 deliverables/06-run-sheet.md
 deliverables/07-script.md
+deliverables/08-qa-technical.md
+deliverables/09-qa-qualitative.md
 deliverables/qa-prep.md
 deliverables/self-review.md
 
-# Working scaffolding
+# Working scaffolding and superseded files
 Claude outputs/
 _bundle.tar.gz
+_to_delete/
+backup-screenshots/
 
 # OS / Python
 .DS_Store
